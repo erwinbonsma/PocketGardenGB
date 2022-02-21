@@ -6,27 +6,32 @@
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-BitGrid bitGrid;
+uint32_t data[H * 3];
+BitGrid bit_grid(data, 3 * 32, H);
 int cx, cy;
 
 void testUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
-    cx = (cx + 79) % 80;
+    cx = (cx + W - 1) % W;
   }
   if (gb.buttons.pressed(BUTTON_RIGHT)) {
-    cx = (cx + 1) % 80;
+    cx = (cx + 1) % W;
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
-    cy = (cy + 63) % 64;
+    cy = (cy + H - 1) % H;
   }
   if (gb.buttons.pressed(BUTTON_DOWN)) {
-    cy = (cy + 1) % 64;
+    cy = (cy + 1) % H;
   }
   if (gb.buttons.pressed(BUTTON_A)) {
-    bitGrid.clear(cx, cy);
+    if (bit_grid.get(cx, cy)) {
+      bit_grid.clear(cx, cy);
+    } else {
+      bit_grid.set(cx, cy);
+    }
   }
   if (gb.buttons.pressed(BUTTON_B)) {
-    bitGrid.set(cx, cy);
+    bit_grid.reset();
   }
 }
 
@@ -34,9 +39,9 @@ void testDraw() {
   gb.display.clear();
 
   gb.display.setColor(WHITE);
-  for (int y = 0; y < 64; ++y) {
-    for (int x = 0; x < 80; ++x) {
-      if (bitGrid.get(x, y)) {
+  for (int y = 0; y < H; ++y) {
+    for (int x = 0; x < W; ++x) {
+      if (bit_grid.get(x, y)) {
         gb.display.drawPixel(x, y);
       }
     }
@@ -52,7 +57,7 @@ void setup() {
   cy = 0;
   updateFunction = testUpdate;
   drawFunction = testDraw;
-}    
+}
 
 void loop() {
   while(!gb.update());
