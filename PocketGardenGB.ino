@@ -10,6 +10,8 @@ uint32_t data[H * 3];
 BitGrid bit_grid(data, 3 * 32, H);
 int cx, cy;
 
+LifeCa ca;
+
 void testUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     cx = (cx + W - 1) % W;
@@ -33,21 +35,14 @@ void testUpdate() {
   if (gb.buttons.pressed(BUTTON_B)) {
     bit_grid.reset();
   }
+
+  ca.step();
 }
 
 void testDraw() {
   gb.display.clear();
 
-  gb.display.setColor(WHITE);
-  for (int y = 0; y < H; ++y) {
-    for (int x = 0; x < W; ++x) {
-      if (bit_grid.get(x, y)) {
-        gb.display.drawPixel(x, y);
-      }
-    }
-  }
-
-  gb.display.drawPixel(cx, cy, YELLOW);
+  ca.draw();
 }
 
 void setup() {
@@ -57,6 +52,8 @@ void setup() {
   cy = 0;
   updateFunction = testUpdate;
   drawFunction = testDraw;
+
+  ca.reset();
 }
 
 void loop() {

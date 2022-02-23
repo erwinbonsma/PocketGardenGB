@@ -21,10 +21,18 @@ class LifeCa {
 
   uint32_t steps_;
 
+  uint32_t rows_[3 * units_per_row_ca];
+
+  void restoreRightBits();
+  void setBorderBits();
+
 public:
   LifeCa();
 
   void reset();
+  void step();
+
+  void draw();
 };
 
 #endif
