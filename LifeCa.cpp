@@ -16,14 +16,32 @@ constexpr uint8_t bit_pos_l_src = 1;
 constexpr uint8_t bit_pos_r_dst = ca_width % bits_per_unit_ca + 1;
 constexpr uint8_t bit_pos_r_src = bit_pos_r_dst - 1;
 
+uint32_t expand[256];
+
+void init_expand() {
+  for (int i = 0; i < 255; ++i) {
+    uint32_t x = i;
+    x = (x | x << 12) & 0x000f000f;
+    x = (x | x <<  6) & 0x03030303;
+    x = (x | x <<  3) & 0x11111111;
+    expand[i] = x;
+  }
+}
+
 LifeCa::LifeCa()
-: bit_grid_(data_, bit_grid_width, bit_grid_height) {
+: bit_grid_(data_, ca_unit_width * bits_per_unit, ca_unit_height) {
   // void
 }
 
 void LifeCa::reset() {
   steps_  = 0;
   bit_grid_.reset();
+}
+
+void LifeCa::randomize() {
+  for (int i = ca_unit_width * ca_unit_height; --i >= 0; ) {
+    data_[i] = random(0xffffffff);
+  }
 }
 
 void LifeCa::restoreRightBits() {
@@ -35,7 +53,7 @@ void LifeCa::restoreRightBits() {
   while (unit_index < limit) {
     uint32_t val_nxt = data_[unit_index + 1];
 
-    data_[unit_index] = val & (~0x1 | val_nxt) << bits_per_unit_ca;
+    data_[unit_index] = (val & ~(0x1 << bits_per_unit_ca)) | (val_nxt & 0x1) << bits_per_unit_ca;
     val = val_nxt;
     ++unit_index;
   }
@@ -50,8 +68,8 @@ void LifeCa::setBorderBits() {
     uint32_t l = data_[unit_index_l];
     uint32_t r = data_[unit_index_r];
 
-    data_[unit_index_l] = l & (~0x1 << bit_pos_l_dst) | (r & (0x1 << bit_pos_r_src)) >> (bit_pos_r_src - bit_pos_l_dst);
-    data_[unit_index_r] = r & (~0x1 << bit_pos_r_dst) | (l & (0x1 << bit_pos_l_src)) << (bit_pos_r_dst - bit_pos_l_src);
+    data_[unit_index_l] = l & ~(0x1 << bit_pos_l_dst) | (r & (0x1 << bit_pos_r_src)) >> (bit_pos_r_src - bit_pos_l_dst);
+    data_[unit_index_r] = r & ~(0x1 << bit_pos_r_dst) | (l & (0x1 << bit_pos_l_src)) << (bit_pos_r_dst - bit_pos_l_src);
 
     unit_index_l += units_per_row_ca;
     unit_index_r += units_per_row_ca;
@@ -83,8 +101,8 @@ void LifeCa::step() {
 
     for (int j = 0; j < units_per_row_ca; ++j) {
       uint32_t above = rows_[row_above + j];
-      uint32_t below = rows_[row_below + j];
       uint32_t currn = rows_[row_currn + j];
+      uint32_t below = rows_[row_below + j];
 
       // above + below
       uint32_t ab_sum = above ^ below;
@@ -117,7 +135,7 @@ void LifeCa::step() {
       abc_car_prev = abc_car;
     }
 
-    uint8_t row_tmp;
+    uint8_t row_tmp = row_above;
     row_above = row_currn;
     row_currn = row_below;
     row_below = row_tmp;
@@ -125,5 +143,28 @@ void LifeCa::step() {
 }
 
 void LifeCa::draw() {
-  // TODO: draw to display by directly OR-ing bits to gb.display._buffer
+  uint32_t  *dst_p = reinterpret_cast<uint32_t*>(gb.display._buffer);
+  uint32_t  *src_p = data_ + units_per_row_ca;
+
+  for (int y = 0; y < ca_height; ++y) {
+    int bits_remaining = ca_width;
+    int rbpu = bits_per_unit_ca - 1;
+
+    while (bits_remaining > 0) {
+      uint8_t v;
+      int num_bits = min(rbpu, bits_remaining);
+      if (rbpu >= 8) {
+        v = (*src_p >> (bits_per_unit_ca - rbpu)) & 0xff;
+        rbpu -= 8;
+      } else {
+        v = (*src_p & 0x7fffffff) >> (bits_per_unit_ca - rbpu);
+        ++src_p;
+        v |= (*src_p << rbpu) & 0xff;
+        rbpu = bits_per_unit_ca - (8 - rbpu);
+      }
+      bits_remaining -= 8;
+      *dst_p |= expand[v];
+      ++dst_p;
+    }
+  }
 }

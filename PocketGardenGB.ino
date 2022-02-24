@@ -2,13 +2,13 @@
 
 #include "BitGrid.h"
 #include "Utils.h"
+#include "LifeCa.h"
 
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-uint32_t data[H * 3];
-BitGrid bit_grid(data, 3 * 32, H);
 int cx, cy;
+bool paused = true;
 
 LifeCa ca;
 
@@ -26,34 +26,51 @@ void testUpdate() {
     cy = (cy + 1) % H;
   }
   if (gb.buttons.pressed(BUTTON_A)) {
-    if (bit_grid.get(cx, cy)) {
-      bit_grid.clear(cx, cy);
+    if (ca.get(cx, cy)) {
+      ca.clear(cx, cy);
     } else {
-      bit_grid.set(cx, cy);
+      ca.set(cx, cy);
     }
   }
   if (gb.buttons.pressed(BUTTON_B)) {
-    bit_grid.reset();
+    //paused = !paused;
+    ca.step();
   }
 
-  ca.step();
+  if (!paused) {
+    ca.step();
+  }
 }
 
 void testDraw() {
   gb.display.clear();
 
-  ca.draw();
+  for (int y = 0; y < H; ++y) {
+    for (int x = 0; x < W; ++ x) {
+      if (ca.get(x, y)) {
+        gb.display.drawPixel(x, y, WHITE);
+      }
+    }
+  }
+
+  gb.display.drawPixel(cx, cy, YELLOW);
+  gb.display.printf("steps = %d", ca.numSteps());
+
+  //ca.draw();
 }
 
 void setup() {
   gb.begin();
+
+  init_expand();
 
   cx = 0;
   cy = 0;
   updateFunction = testUpdate;
   drawFunction = testDraw;
 
-  ca.reset();
+  //ca.reset();
+  ca.randomize();
 }
 
 void loop() {
