@@ -33,8 +33,8 @@ void testUpdate() {
     }
   }
   if (gb.buttons.pressed(BUTTON_B)) {
-    //paused = !paused;
-    ca.step();
+    paused = !paused;
+    //ca.step();
   }
 
   if (!paused) {
@@ -46,7 +46,7 @@ void testDraw() {
   gb.display.clear();
 
   for (int y = 0; y < H; ++y) {
-    for (int x = 0; x < W; ++ x) {
+    for (int x = 0; x < W; ++x) {
       if (ca.get(x, y)) {
         gb.display.drawPixel(x, y, WHITE);
       }

@@ -9,7 +9,7 @@ constexpr int ca_width = 80;
 constexpr int ca_height = 64;
 
 constexpr int bits_per_unit_ca = bits_per_unit - 1;
-constexpr int units_per_row_ca = (ca_width + bits_per_unit_ca - 1) / bits_per_unit_ca + 1;
+constexpr int units_per_row_ca = ca_width / bits_per_unit_ca + 1;
 constexpr int bytes_per_row_ca = 4 * units_per_row_ca;
 
 constexpr int ca_unit_width = units_per_row_ca;
@@ -22,8 +22,6 @@ class LifeCa {
   BitGrid bit_grid_;
 
   uint32_t steps_;
-
-  uint32_t rows_[3 * units_per_row_ca];
 
   void restoreRightBits();
   void setBorderBits();
@@ -41,13 +39,13 @@ public:
   int numSteps() { return steps_; }
 
   bool get(int x, int y) {
-    return (data_[indexOf(x, y)] >> (x % bits_per_unit_ca)) & 0x1;
+    return (data_[indexOf(x, y)] >> ((x + 1) % bits_per_unit_ca)) & 0x1;
   }
   bool set(int x, int y) {
-    data_[indexOf(x, y)] |= (0x1 << (x % bits_per_unit_ca));
+    data_[indexOf(x, y)] |= (0x1 << ((x + 1) % bits_per_unit_ca));
   }
   bool clear(int x, int y) {
-    data_[indexOf(x, y)] &= ~(0x1 << (x % bits_per_unit_ca));
+    data_[indexOf(x, y)] &= ~(0x1 << ((x + 1) % bits_per_unit_ca));
   }
 
 private:
