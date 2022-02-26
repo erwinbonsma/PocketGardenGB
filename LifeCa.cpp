@@ -42,7 +42,7 @@ void LifeCa::reset() {
 
 void LifeCa::randomize() {
   for (int i = ca_unit_width * ca_unit_height; --i >= 0; ) {
-    data_[i] = random(0xffffffff);
+    data_[i] = random(0xffff) | random(0xffff) << 16;
   }
 }
 
