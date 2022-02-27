@@ -45,18 +45,21 @@ void testUpdate() {
 void testDraw() {
   gb.display.clear();
 
-  for (int y = 0; y < H; ++y) {
-    for (int x = 0; x < W; ++x) {
-      if (ca.get(x, y)) {
-        gb.display.drawPixel(x, y, WHITE);
+  if (paused) {
+    for (int y = 0; y < H; ++y) {
+      for (int x = 0; x < W; ++x) {
+        if (ca.get(x, y)) {
+          gb.display.drawPixel(x, y, WHITE);
+        }
       }
     }
+  } else {
+    ca.draw();
   }
 
   gb.display.drawPixel(cx, cy, YELLOW);
   gb.display.printf("steps = %d", ca.numSteps());
 
-  //ca.draw();
 }
 
 void setup() {

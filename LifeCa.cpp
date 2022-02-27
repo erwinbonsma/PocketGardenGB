@@ -16,16 +16,15 @@ constexpr uint8_t bit_pos_l_src = 1;
 constexpr uint8_t bit_pos_r_dst = ca_width % bits_per_unit_ca + 1;
 constexpr uint8_t bit_pos_r_src = bit_pos_r_dst - 1;
 
-uint32_t expand[256];
+uint16_t expand[16];
 
 uint32_t rows[3 * units_per_row_ca];
 
 void init_expand() {
-  for (int i = 0; i < 255; ++i) {
-    uint32_t x = i;
-    x = (x | x << 12) & 0x000f000f;
-    x = (x | x <<  6) & 0x03030303;
-    x = (x | x <<  3) & 0x11111111;
+  for (int i = 0; i < 16; ++i) {
+    uint16_t x = i;
+    x = (x | x <<  6) & 0x0303;
+    x = (x >> 1 | x << 4) & 0x1111;
     expand[i] = x;
   }
 }
@@ -148,28 +147,29 @@ void LifeCa::step() {
 }
 
 void LifeCa::draw() {
-  uint32_t  *dst_p = reinterpret_cast<uint32_t*>(gb.display._buffer);
-  uint32_t  *src_p = data_ + units_per_row_ca;
+  uint16_t  *dst_p = gb.display._buffer;
+  uint32_t  *src_p = &data_[units_per_row_ca];
 
   for (int y = 0; y < ca_height; ++y) {
     int bits_remaining = ca_width;
     int rbpu = bits_per_unit_ca - 1;
 
     while (bits_remaining > 0) {
-      uint8_t v;
+      int v;
       int num_bits = min(rbpu, bits_remaining);
-      if (rbpu >= 8) {
-        v = (*src_p >> (bits_per_unit_ca - rbpu)) & 0xff;
-        rbpu -= 8;
+      if (rbpu >= 4) {
+        v = (*src_p >> (bits_per_unit_ca - rbpu)) & 0xf;
+        rbpu -= 4;
       } else {
         v = (*src_p & 0x7fffffff) >> (bits_per_unit_ca - rbpu);
         ++src_p;
-        v |= (*src_p << rbpu) & 0xff;
-        rbpu = bits_per_unit_ca - (8 - rbpu);
+        v |= (*src_p << rbpu) & 0xf;
+        rbpu = bits_per_unit_ca - (4 - rbpu);
       }
-      bits_remaining -= 8;
+      bits_remaining -= 4;
       *dst_p |= expand[v];
       ++dst_p;
     }
+    ++src_p;
   }
 }
