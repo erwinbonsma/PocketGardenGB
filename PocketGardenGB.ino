@@ -4,7 +4,7 @@
 
 #include <array>
 
-#include "BitGrid.h"
+#include "CellCounter.h"
 #include "Utils.h"
 #include "LifeCa.h"
 
@@ -13,13 +13,18 @@ DrawFunction drawFunction;
 
 constexpr int max_step_wait = 6;
 constexpr int num_view_modes = 6;
+constexpr int history_len = W;
 
 int cx, cy;
 bool paused = true;
 int view_mode = 4;
 int step_wait = 5;
+int num_steps = 0;
 
 std::array<LifeCa, 4> cas;
+
+CellCounter cell_counter;
+std::array<std::array<uint16_t, history_len>, 4> cell_counts;
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -72,9 +77,34 @@ void testUpdate() {
 
   if (!paused) {
     if (gb.frameCount % (1 << step_wait) == 0) {
+      int layer = 0;
+      int history_index = num_steps % history_len;
       for (auto& ca : cas) {
         ca.step();
+        cell_counts[layer][history_index] = cell_counter.countCells(ca);
+
+        ++layer;
       }
+      ++num_steps;
+    }
+  }
+}
+
+ColorIndex layer_colors[4] = { ColorIndex::darkblue, ColorIndex::purple, ColorIndex::brown, ColorIndex::red };
+void drawCellCountHistory() {
+  for (int i = 0; i < cell_counts.size(); ++i) {
+    ColorIndex mask = layer_colors[i];
+    int tmax = num_steps;
+    int tmin = std::max(tmax - history_len, 0);
+    const auto& history = cell_counts[i];
+
+    for (int t = tmin; t < tmax; ++t) {
+      int x = t - tmin;
+      int v = history[t % history_len];
+      int fv = round(sqrt(0.25 + 2 * v * 1.6));
+      int y = 63 - std::max(0, std::min(63, fv - 2));
+
+      gb.display.drawPixel(x, y, mask);
     }
   }
 }
@@ -90,7 +120,10 @@ void testDraw() {
       }
       ++layer;
     }
+  } else {
+    drawCellCountHistory();
   }
+
   if (paused) {
     gb.display.drawPixel(cx, cy, YELLOW);
   }

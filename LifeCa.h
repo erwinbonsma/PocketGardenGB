@@ -17,11 +17,13 @@ constexpr int ca_unit_height = ca_height + 2;
 
 void init_expand();
 
+class CellCounter;
+
 class LifeCa {
+  friend CellCounter;
+
   uint32_t data_[ca_unit_width * ca_unit_height];
   BitGrid bit_grid_;
-
-  uint32_t steps_;
 
   void restoreRightBits();
   void setBorderBits();
@@ -35,8 +37,6 @@ public:
   void step();
 
   void draw(int layer) const;
-
-  int numSteps() { return steps_; }
 
   bool get(int x, int y) {
     return (data_[indexOf(x, y)] >> ((x + 1) % bits_per_unit_ca)) & 0x1;

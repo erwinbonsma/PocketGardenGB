@@ -35,7 +35,6 @@ LifeCa::LifeCa()
 }
 
 void LifeCa::reset() {
-  steps_  = 0;
   bit_grid_.reset();
 }
 
@@ -84,8 +83,6 @@ void LifeCa::step() {
   uint8_t row_above = 0;
   uint8_t row_currn = units_per_row_ca;
   uint8_t row_below = units_per_row_ca * 2;
-
-  ++steps_;
 
   restoreRightBits();
   setBorderBits();
