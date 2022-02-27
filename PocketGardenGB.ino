@@ -1,4 +1,8 @@
 #include <Gamebuino-Meta.h>
+#undef min
+#undef max
+
+#include <array>
 
 #include "BitGrid.h"
 #include "Utils.h"
@@ -10,7 +14,7 @@ DrawFunction drawFunction;
 int cx, cy;
 bool paused = true;
 
-LifeCa cas[4];
+std::array<LifeCa, 4> cas;
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -46,8 +50,8 @@ void testUpdate() {
   }
 
   if (!paused) {
-    for (int i = 0; i < 4; ++i) {
-      cas[i].step();
+    for (auto& ca : cas) {
+      ca.step();
     }
   }
 }
@@ -66,8 +70,9 @@ void testDraw() {
     }
     gb.display.drawPixel(cx, cy, YELLOW);
   } else {
-    for (int i = 0; i < 4; ++i) {
-      cas[i].draw(i);
+    int layer = 0;
+    for (const auto& ca : cas) {
+      ca.draw(layer++);
     }
   }
 
@@ -86,8 +91,8 @@ void setup() {
   drawFunction = testDraw;
 
   //ca.reset();
-  for (int i = 0; i < 4; ++i) {
-    cas[i].randomize();
+  for (auto& ca : cas) {
+    ca.randomize();
   }
 }
 

@@ -34,7 +34,7 @@ public:
 
   void step();
 
-  void draw(int layer);
+  void draw(int layer) const;
 
   int numSteps() { return steps_; }
 

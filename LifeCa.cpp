@@ -146,9 +146,9 @@ void LifeCa::step() {
   }
 }
 
-void LifeCa::draw(int layer) {
+void LifeCa::draw(int layer) const {
   uint16_t  *dst_p = gb.display._buffer;
-  uint32_t  *src_p = &data_[units_per_row_ca];
+  const uint32_t  *src_p = &data_[units_per_row_ca];
 
   for (int y = 0; y < ca_height; ++y) {
     int bits_remaining = ca_width;
