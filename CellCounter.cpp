@@ -1,24 +1,12 @@
 #include "CellCounter.h"
 
 #include "LifeCa.h"
+#include "Utils.h"
 
 constexpr uint32_t mask_c = ~(0x1 << bits_per_unit_ca);
 constexpr uint32_t mask_l = mask_c & ~0x1;
 constexpr int num_bits_last_unit = ca_width % bits_per_unit_ca + 1;
 constexpr uint32_t mask_r = mask_c & ~0x0 >> (bits_per_unit - num_bits_last_unit);
-
-int countBits(int val) {
-  int num_bits = 0;
-
-  while (val) {
-    if (val & 0x1) {
-      ++num_bits;
-    }
-    val >>= 1;
-  }
-
-  return num_bits;
-}
 
 CellCounter::CellCounter() {
   for (int i = 0; i < 256; ++i) {

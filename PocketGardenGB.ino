@@ -6,6 +6,7 @@
 
 #include "CellCounter.h"
 #include "CellCountHistory.h"
+#include "CellMods.h"
 #include "Utils.h"
 #include "LifeCa.h"
 
@@ -44,14 +45,13 @@ constexpr int max_step_wait = 6;
 constexpr int num_view_modes = 6;
 
 int cx, cy;
-bool paused = true;
+bool paused = false;
 int view_mode = 4;
 int step_wait = 5;
 int num_steps = 0;
 
-std::array<LifeCa, 4> cas;
-
 CellCounter cell_counter;
+std::array<CellDecay, num_ca_layers> cell_decays;
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -60,7 +60,7 @@ void displayCpuLoad() {
   gb.display.printf("%d", cpu_load);
 }
 
-void testUpdate() {
+void gameUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     if (paused) {
       cx = (cx + W - 1) % W;
@@ -106,9 +106,16 @@ void testUpdate() {
     if (gb.frameCount % (1 << step_wait) == 0) {
       int layer = 0;
       int history_index = num_steps % history_len;
+      int total_cells = 0;
       for (auto& ca : cas) {
         ca.step();
-        cell_counts[layer][history_index] = cell_counter.countCells(ca);
+
+        int cell_count = cell_counter.countCells(ca);
+        cell_counts[layer][history_index] = cell_count;
+        if (cell_count > 0) {
+          cell_decays[layer].update();
+          total_cells += cell_count;
+        }
 
         ++layer;
       }
@@ -117,7 +124,7 @@ void testUpdate() {
   }
 }
 
-void testDraw() {
+void gameDraw() {
   gb.display.clear();
 
   if (view_mode <= 4) {
@@ -132,11 +139,35 @@ void testDraw() {
     plotCellCounts(num_steps);
   }
 
+  if (view_mode < 4) {
+    gb.display.setColor(INDEX_WHITE);
+    gb.display.setCursor(1, 1);
+    gb.display.printf("%d/%d/%d/%d",
+      cell_decays[view_mode].targetLayerIndex(),
+      cell_decays[view_mode].destroyCount(),
+      cell_decays[view_mode].isTargetIdentified(),
+      cell_decays[view_mode].mask()
+    );
+  }
+
   if (paused) {
     gb.display.drawPixel(cx, cy, YELLOW);
   }
 
   displayCpuLoad();
+}
+
+void startGame() {
+  updateFunction = gameUpdate;
+  drawFunction = gameDraw;
+
+  int layer = 0;
+  for (auto& ca : cas) {
+    //ca.reset();
+    ca.randomize();
+    cell_decays[layer].reset();
+    ++layer;
+  }
 }
 
 void setup() {
@@ -148,13 +179,14 @@ void setup() {
 
   cx = 0;
   cy = 0;
-  updateFunction = testUpdate;
-  drawFunction = testDraw;
 
-  //ca.reset();
-  for (auto& ca : cas) {
-    ca.randomize();
+  int layer = 0;
+  for (auto& cell_decay : cell_decays) {
+    cell_decay.init(layer);
+    ++layer;
   }
+
+  startGame();
 }
 
 void loop() {

@@ -2,6 +2,19 @@
 
 #include <Gamebuino-Meta.h>
 
+int countBits(int val) {
+  int num_bits = 0;
+
+  while (val) {
+    if (val & 0x1) {
+      ++num_bits;
+    }
+    val >>= 1;
+  }
+
+  return num_bits;
+}
+
 void assertFailed(const char *function, const char *file, int lineNo, const char *expression) {
   if (SerialUSB) {
     SerialUSB.println("=== ASSERT FAILED ===");

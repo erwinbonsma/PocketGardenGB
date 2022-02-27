@@ -11,6 +11,8 @@ typedef void (*DrawFunction)();
 extern UpdateFunction updateFunction;
 extern DrawFunction drawFunction;
 
+int countBits(int val);
+
 void assertFailed(const char *function, const char *file, int lineNo, const char *expression);
 
 #define assertTrue(condition) \

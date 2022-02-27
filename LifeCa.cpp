@@ -1,5 +1,7 @@
 #include "LifeCa.h"
 
+LifeCaLayers cas;
+
 constexpr uint32_t bits_in_last_ca_unit = ca_width % bits_per_unit_ca + 1;
 
 // Masks with valid bits
@@ -153,7 +155,7 @@ void LifeCa::draw(int layer) const {
 
     while (bits_remaining > 0) {
       int v;
-      int num_bits = min(rbpu, bits_remaining);
+      int num_bits = std::min(rbpu, bits_remaining);
       if (rbpu >= 4) {
         v = (*src_p >> (bits_per_unit_ca - rbpu)) & 0xf;
         rbpu -= 4;
