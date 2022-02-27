@@ -139,14 +139,12 @@ void gameDraw() {
     plotCellCounts(num_steps);
   }
 
+  gb.display.setColor(INDEX_WHITE);
+  gb.display.setCursor(1, 1);
   if (view_mode < 4) {
-    gb.display.setColor(INDEX_WHITE);
-    gb.display.setCursor(1, 1);
-    gb.display.printf("%d/%d/%d/%d",
-      cell_decays[view_mode].targetLayerIndex(),
+    gb.display.printf("%d/%d",
       cell_decays[view_mode].destroyCount(),
-      cell_decays[view_mode].isTargetIdentified(),
-      cell_decays[view_mode].mask()
+      cell_counts[view_mode][(num_steps - 1) % history_len]
     );
   }
 
