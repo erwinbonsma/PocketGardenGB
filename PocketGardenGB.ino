@@ -5,6 +5,7 @@
 #include <array>
 
 #include "CellCounter.h"
+#include "CellCountHistory.h"
 #include "Utils.h"
 #include "LifeCa.h"
 
@@ -13,7 +14,6 @@ DrawFunction drawFunction;
 
 constexpr int max_step_wait = 6;
 constexpr int num_view_modes = 6;
-constexpr int history_len = W;
 
 int cx, cy;
 bool paused = true;
@@ -24,7 +24,6 @@ int num_steps = 0;
 std::array<LifeCa, 4> cas;
 
 CellCounter cell_counter;
-std::array<std::array<uint16_t, history_len>, 4> cell_counts;
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -90,25 +89,6 @@ void testUpdate() {
   }
 }
 
-ColorIndex layer_colors[4] = { ColorIndex::darkblue, ColorIndex::purple, ColorIndex::brown, ColorIndex::red };
-void drawCellCountHistory() {
-  for (int i = 0; i < cell_counts.size(); ++i) {
-    ColorIndex mask = layer_colors[i];
-    int tmax = num_steps;
-    int tmin = std::max(tmax - history_len, 0);
-    const auto& history = cell_counts[i];
-
-    for (int t = tmin; t < tmax; ++t) {
-      int x = t - tmin;
-      int v = history[t % history_len];
-      int fv = round(sqrt(0.25 + 2 * v * 1.6));
-      int y = 63 - std::max(0, std::min(63, fv - 2));
-
-      gb.display.drawPixel(x, y, mask);
-    }
-  }
-}
-
 void testDraw() {
   gb.display.clear();
 
@@ -121,7 +101,7 @@ void testDraw() {
       ++layer;
     }
   } else {
-    drawCellCountHistory();
+    plotCellCounts(num_steps);
   }
 
   if (paused) {
@@ -129,11 +109,11 @@ void testDraw() {
   }
 
   displayCpuLoad();
-  //gb.display.printf("steps = %d", ca.numSteps());
 }
 
 void setup() {
   gb.begin();
+  gb.setFrameRate(30);
 
   init_expand();
 
