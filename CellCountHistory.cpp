@@ -30,21 +30,18 @@ int cellCountToY(int cellCount) {
   return y;
 }
 
-ColorIndex layer_colors[4] = { ColorIndex::darkblue, ColorIndex::purple, ColorIndex::brown, ColorIndex::red };
-
 void plotCellCounts(int tmax) {
   int tmin = std::max(tmax - history_len, 0);
   uint8_t* buf = reinterpret_cast<uint8_t*>(gb.display._buffer);
 
   for (int i = 0; i < cell_counts.size(); ++i) {
-    ColorIndex mask = layer_colors[i];
     const auto& history = cell_counts[i];
 
     for (int t = tmin; t < tmax; ++t) {
       int x = t - tmin;
       int y = 63 - cellCountToY(history[t % history_len]);
       int addr = (W / 2) * y + x / 2;
-      buf[addr] |= (uint8_t)mask << (x % 2 ? 0 : 4);
+      buf[addr] |= 0x1 << i + (x % 2 ? 0 : 4);
     }
   }
 }

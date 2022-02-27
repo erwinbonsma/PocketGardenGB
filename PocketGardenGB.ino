@@ -9,6 +9,34 @@
 #include "Utils.h"
 #include "LifeCa.h"
 
+// Color palette chosen such that blends of CA cells is somewhat logical.
+// - black is no cells, and white is all cells
+// - The core layers colors are: darkblue, purple, green, darkgray
+//   - These are the dark variants of the primary colors R, G and B plus a brightness
+// - Mixing two colors:
+//   - Mixing with darkgray makes the other color "lighter"
+// - Mixing three colors:
+//   - Results in four bright colors
+//   - The resulting color is a lighter variant of the blend of two of the three colors
+const Color caColorPalette[16] = {
+  Color::black,
+  Color::darkblue,     //  1: Layer 1
+  Color::purple,       //  2: Layer 2
+  Color::pink,         //  3: Layer 1+2
+  Color::green,        //  4: Layer 3
+  Color::brown,        //  5: Layer 1+3
+  Color::orange,       //  6: Layer 2+3
+  Color::gray,         //  7: Layer 1+2+3
+  Color::darkgray,     //  8: Layer 4
+  Color::blue,         //  9: Layer 1+4
+  Color::red,          // 10: Layer 2+4
+  Color::lightblue,    // 11: Layer 1+2+4
+  Color::lightgreen,   // 12: Layer 3+4
+  Color::beige,        // 13: Layer 1+3+4
+  Color::yellow,       // 14: Layer 2+3+4
+  Color::white,
+};
+
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
@@ -114,6 +142,7 @@ void testDraw() {
 void setup() {
   gb.begin();
   gb.setFrameRate(30);
+  gb.display.setPalette(caColorPalette);
 
   init_expand();
 
