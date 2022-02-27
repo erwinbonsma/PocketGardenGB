@@ -146,7 +146,7 @@ void LifeCa::step() {
   }
 }
 
-void LifeCa::draw() {
+void LifeCa::draw(int layer) {
   uint16_t  *dst_p = gb.display._buffer;
   uint32_t  *src_p = &data_[units_per_row_ca];
 
@@ -167,7 +167,7 @@ void LifeCa::draw() {
         rbpu = bits_per_unit_ca - (4 - rbpu);
       }
       bits_remaining -= 4;
-      *dst_p |= expand[v];
+      *dst_p |= (expand[v] << layer);
       ++dst_p;
     }
     ++src_p;

@@ -10,7 +10,14 @@ DrawFunction drawFunction;
 int cx, cy;
 bool paused = true;
 
-LifeCa ca;
+LifeCa cas[4];
+
+void displayCpuLoad() {
+  uint8_t cpu_load = gb.getCpuLoad();
+  gb.display.setColor(cpu_load < 80 ? INDEX_GREEN : (cpu_load < 100 ? INDEX_YELLOW : INDEX_RED));
+  gb.display.setCursor(1, 58);
+  gb.display.printf("%d", cpu_load);
+}
 
 void testUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
@@ -26,6 +33,7 @@ void testUpdate() {
     cy = (cy + 1) % H;
   }
   if (gb.buttons.pressed(BUTTON_A)) {
+    LifeCa &ca = cas[0];
     if (ca.get(cx, cy)) {
       ca.clear(cx, cy);
     } else {
@@ -38,7 +46,9 @@ void testUpdate() {
   }
 
   if (!paused) {
-    ca.step();
+    for (int i = 0; i < 4; ++i) {
+      cas[i].step();
+    }
   }
 }
 
@@ -46,6 +56,7 @@ void testDraw() {
   gb.display.clear();
 
   if (paused) {
+    LifeCa &ca = cas[0];
     for (int y = 0; y < H; ++y) {
       for (int x = 0; x < W; ++x) {
         if (ca.get(x, y)) {
@@ -53,13 +64,15 @@ void testDraw() {
         }
       }
     }
+    gb.display.drawPixel(cx, cy, YELLOW);
   } else {
-    ca.draw();
+    for (int i = 0; i < 4; ++i) {
+      cas[i].draw(i);
+    }
   }
 
-  gb.display.drawPixel(cx, cy, YELLOW);
-  gb.display.printf("steps = %d", ca.numSteps());
-
+  displayCpuLoad();
+  //gb.display.printf("steps = %d", ca.numSteps());
 }
 
 void setup() {
@@ -73,7 +86,9 @@ void setup() {
   drawFunction = testDraw;
 
   //ca.reset();
-  ca.randomize();
+  for (int i = 0; i < 4; ++i) {
+    cas[i].randomize();
+  }
 }
 
 void loop() {
