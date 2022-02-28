@@ -96,7 +96,7 @@ void revive() {
   }
 
   // Iterate over grid
-  for (int i = units_per_row_ca * ca_unit_height; --i >= 0; ) {
+  for (int i = units_per_row_ca * ca_height; --i >= 0; ) {
     uint32_t mask = (*ps[0]&*ps[1] | *ps[1]&*ps[2] | *ps[2]&*ps[3] | *ps[3]&*ps[0]);
     for (auto& p : ps) {
       *p |= mask;
