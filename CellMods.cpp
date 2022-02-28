@@ -115,3 +115,42 @@ void CellDecay::update() {
     target_identified_ = false;
   }
 }
+
+
+void CellMutation::mutateTarget() {
+  LifeCa &ca = cas[target_layer_index_];
+  int offset = random(4);
+  for (int i = 0; i < 4; ++i) {
+    int dir = (i + offset) % 4;
+    int dx = 2 * (dir % 2) - 1;
+    int dy = 2 * (dir / 2) - 1;
+    int x = (target_pos_.x + dx + ca_width) % ca_width;
+    int y = (target_pos_.y + dy + ca_height) % ca_height;
+
+    if (!ca.get(x, y)) {
+      ca.set(x, y);
+      return;
+    }
+  }
+}
+
+void CellMutation::reset() {
+  CellFinder::reset();
+
+  mutate_ = false;
+}
+
+void CellMutation::update() {
+  if (random(avg_mutation_period) == 0) {
+    mutate_ = true;
+  }
+
+  if (mutate_) {
+    CellFinder::update();
+    if (target_identified_) {
+      mutateTarget();
+      target_identified_ = false;
+      mutate_ = false;
+    }
+  }
+}

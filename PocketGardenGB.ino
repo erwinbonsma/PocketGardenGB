@@ -52,6 +52,7 @@ int num_steps = 0;
 
 CellCounter cell_counter;
 std::array<CellDecay, num_ca_layers> cell_decays;
+std::array<CellMutation, num_ca_layers> cell_mutations;
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -113,13 +114,19 @@ void gameUpdate() {
         int cell_count = cell_counter.countCells(ca);
         cell_counts[layer][history_index] = cell_count;
         if (cell_count > 0) {
-          cell_decays[layer].update();
           total_cells += cell_count;
+
+          cell_decays[layer].update();
+          cell_mutations[layer].update();
         }
 
         ++layer;
       }
       ++num_steps;
+
+      if (total_cells == 0) {
+        startGame();
+      }
     }
   }
 }
@@ -164,6 +171,7 @@ void startGame() {
     //ca.reset();
     ca.randomize();
     cell_decays[layer].reset();
+    cell_mutations[layer].reset();
     ++layer;
   }
 }
@@ -178,10 +186,9 @@ void setup() {
   cx = 0;
   cy = 0;
 
-  int layer = 0;
-  for (auto& cell_decay : cell_decays) {
-    cell_decay.init(layer);
-    ++layer;
+  for (int i = 0; i < num_ca_layers; ++i) {
+    cell_decays[i].init(i);
+    cell_mutations[i].init(i);
   }
 
   startGame();

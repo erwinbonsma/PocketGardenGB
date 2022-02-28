@@ -7,6 +7,7 @@
 
 constexpr int max_cell_find_attempts = 32;
 constexpr int num_decay_death_ticks = 16;
+constexpr int avg_mutation_period = 512;
 
 struct GridPos {
   uint8_t x;
@@ -46,6 +47,16 @@ public:
   uint16_t destroyCount() const { return destroy_count_; }
   uint8_t mask() const { return mask_; }
 
+  void reset() override;
+  void update() override;
+};
+
+class CellMutation : public CellFinder {
+  bool mutate_;
+
+  void mutateTarget();
+
+public:
   void reset() override;
   void update() override;
 };
