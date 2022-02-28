@@ -72,7 +72,7 @@ void gameOver(bool ignore_lo_score = false);
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
-  gb.display.setColor(cpu_load < 80 ? INDEX_GREEN : (cpu_load < 100 ? INDEX_YELLOW : INDEX_RED));
+  gb.display.setColor(cpu_load < 80 ? Color::green : (cpu_load < 100 ? Color::yellow : Color::red));
   gb.display.setCursor(1, 58);
   gb.display.printf("%d", cpu_load);
 }
@@ -258,7 +258,7 @@ void setup() {
 
   cx = 0;
   cy = 0;
-  step_wait = 5;
+  step_wait = 0;
 
   for (int i = 0; i < num_ca_layers; ++i) {
     cell_decays[i].init(i);
