@@ -42,7 +42,7 @@ const Color caColorPalette[16] = {
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-constexpr int max_step_wait = 6;
+constexpr int max_step_wait = 8; //6;
 constexpr int num_view_modes = 6;
 
 // How many frames to ignore key press after screen switch
@@ -54,12 +54,17 @@ constexpr int auto_play_wait = 15 * 30;
 // How many frames to press A key to prematurely exit game
 constexpr int exit_press_limit = 30;
 
+// How many steps to wait until revive is allowed again
+constexpr int min_revive_wait = 30;
+
 int cx, cy;
 bool paused = false;
 uint8_t view_mode;
 uint8_t step_wait;
+uint8_t revive_cooldown;
 
 uint32_t num_steps;
+uint32_t num_revives;
 uint32_t score;
 uint32_t lo_score = std::numeric_limits<uint32_t>::max();
 uint32_t hi_score = 0;
@@ -75,6 +80,29 @@ void displayCpuLoad() {
   gb.display.setColor(cpu_load < 80 ? Color::green : (cpu_load < 100 ? Color::yellow : Color::red));
   gb.display.setCursor(1, 58);
   gb.display.printf("%d", cpu_load);
+
+  if (revive_cooldown != 0) {
+    gb.display.printf(" revived!");
+  }
+}
+
+void revive() {
+  // Init data pointers
+  std::array<uint32_t*, num_ca_layers> ps;
+  int layer = 0;
+  for (auto& ca : cas) {
+    ps[layer] = &ca.data_[units_per_row_ca];
+    ++layer;
+  }
+
+  // Iterate over grid
+  for (int i = units_per_row_ca * ca_unit_height; --i >= 0; ) {
+    uint32_t mask = (*ps[0]&*ps[1] | *ps[1]&*ps[2] | *ps[2]&*ps[3] | *ps[3]&*ps[0]);
+    for (auto& p : ps) {
+      *p |= mask;
+      ++p;
+    }
+  }
 }
 
 void gameUpdate() {
@@ -120,8 +148,13 @@ void gameUpdate() {
     gameOver(true);
   }
   if (gb.buttons.pressed(BUTTON_B)) {
-    paused = !paused;
-    //ca.step();
+    if (!revive_cooldown) {
+      revive();
+      revive_cooldown = min_revive_wait;
+      ++num_revives;
+      return;
+    }
+    //paused = !paused;
   }
 
   if (!paused) {
@@ -147,6 +180,9 @@ void gameUpdate() {
 
       if (total_cells == 0) {
         gameOver();
+      }
+      if (revive_cooldown > 0) {
+        --revive_cooldown;
       }
     }
   }
@@ -235,6 +271,7 @@ void startGame() {
 
   view_mode = 4;
   num_steps = 0;
+  num_revives = 0;
 }
 
 void gameOver(bool ignore_lo_score) {

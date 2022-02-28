@@ -27,6 +27,7 @@ class CellCounter;
 
 class LifeCa {
   friend CellCounter;
+  friend void revive();
 
   uint32_t data_[ca_unit_width * ca_unit_height];
   BitGrid bit_grid_;
