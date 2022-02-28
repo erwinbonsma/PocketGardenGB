@@ -69,7 +69,7 @@ uint32_t score;
 uint32_t lo_score = std::numeric_limits<uint32_t>::max();
 uint32_t hi_score = 0;
 
-CellCounter cell_counter;
+CellCountHistory cell_count_history;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
 
@@ -152,6 +152,7 @@ void gameUpdate() {
       revive();
       revive_cooldown = min_revive_wait;
       ++num_revives;
+      cell_count_history.countCells();
       return;
     }
     //paused = !paused;
@@ -163,13 +164,8 @@ void gameUpdate() {
       int history_index = num_steps % history_len;
       int total_cells = 0;
       for (auto& ca : cas) {
-        ca.step();
-
-        int cell_count = cell_counter.countCells(ca);
-        cell_counts[layer][history_index] = cell_count;
-        if (cell_count > 0) {
-          total_cells += cell_count;
-
+        if (cell_count_history.numCells(layer)) {
+          ca.step();
           cell_decays[layer].update();
           cell_mutations[layer].update();
         }
@@ -178,7 +174,7 @@ void gameUpdate() {
       }
       ++num_steps;
 
-      if (total_cells == 0) {
+      if (cell_count_history.countCells() == 0) {
         gameOver();
       }
       if (revive_cooldown > 0) {
@@ -214,7 +210,7 @@ void gameDraw() {
       ++layer;
     }
   } else {
-    plotCellCounts(num_steps);
+    cell_count_history.plot();
   }
 
   gb.display.setColor(INDEX_WHITE);
@@ -222,7 +218,7 @@ void gameDraw() {
   if (view_mode < 4) {
     gb.display.printf("%d/%d",
       cell_decays[view_mode].destroyCount(),
-      cell_counts[view_mode][(num_steps - 1) % history_len]
+      cell_count_history.numCells(view_mode)
     );
   }
 
@@ -268,6 +264,7 @@ void startGame() {
     cell_mutations[layer].reset();
     ++layer;
   }
+  cell_count_history.reset();
 
   view_mode = 4;
   num_steps = 0;

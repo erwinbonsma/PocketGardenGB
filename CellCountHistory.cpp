@@ -4,7 +4,12 @@
 #undef min
 #undef max
 
-CellCountHistory cell_counts;
+// TODO: Move implementation to here
+#include "CellCounter.h"
+
+#include "LifeCa.h"
+
+CellCounter cell_counter;
 
 // Generated via generate_lookups.py
 constexpr uint16_t y_lookup[H] = {
@@ -30,16 +35,44 @@ int cellCountToY(int cellCount) {
   return y;
 }
 
-void plotCellCounts(int tmax) {
-  int tmin = std::max(tmax - history_len, 0);
+void CellCountHistory::reset() {
+  // Populate history with only current cell count
+  last_entry_index_ = history_len - 1;
+  countCells();
+  wrapped_ = false;
+}
+
+int CellCountHistory::countCells() {
+  ++last_entry_index_;
+  if (last_entry_index_ == history_len) {
+    last_entry_index_ = 0;
+    wrapped_ = true;
+  }
+  assertTrue(last_entry_index_ < history_len);
+
+  int total = 0;
+  int layer = 0;
+  for (auto& ca : cas) {
+    int cell_count = cell_counter.countCells(ca);
+    cell_counts_[layer][last_entry_index_] = cell_count;
+    total += cell_count;
+    ++layer;
+  }
+
+  return total;
+}
+
+void CellCountHistory::plot() {
   uint8_t* buf = reinterpret_cast<uint8_t*>(gb.display._buffer);
 
-  for (int i = 0; i < cell_counts.size(); ++i) {
-    const auto& history = cell_counts[i];
+  int start_index = wrapped_ ? (last_entry_index_ + 1) % history_len : 0;
+  int num_points = wrapped_ ? history_len : last_entry_index_ + 1;
 
-    for (int t = tmin; t < tmax; ++t) {
-      int x = t - tmin;
-      int y = 63 - cellCountToY(history[t % history_len]);
+  for (int i = 0; i < num_ca_layers; ++i) {
+    const auto& history = cell_counts_[i];
+
+    for (int x = num_points; --x >= 0; ) {
+      int y = 63 - cellCountToY(history[(start_index + x) % history_len]);
       int addr = (W / 2) * y + x / 2;
       buf[addr] |= 0x1 << i + (x % 2 ? 0 : 4);
     }

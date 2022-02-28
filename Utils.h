@@ -4,6 +4,8 @@
 constexpr int W = 80;
 constexpr int H = 64;
 
+constexpr int num_ca_layers = 4;
+
 typedef void (*UpdateFunction)();
 typedef void (*DrawFunction)();
 

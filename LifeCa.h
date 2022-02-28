@@ -8,6 +8,7 @@
 #include <array>
 
 #include "BitGrid.h"
+#include "Utils.h"
 
 constexpr int ca_width = 80;
 constexpr int ca_height = 64;
@@ -18,8 +19,6 @@ constexpr int bytes_per_row_ca = 4 * units_per_row_ca;
 
 constexpr int ca_unit_width = units_per_row_ca;
 constexpr int ca_unit_height = ca_height + 2;
-
-constexpr int num_ca_layers = 4;
 
 void init_expand();
 
