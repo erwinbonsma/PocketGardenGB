@@ -3,6 +3,7 @@
 #undef max
 
 #include <array>
+#include <limits>
 
 #include "CellCounter.h"
 #include "CellCountHistory.h"
@@ -44,15 +45,30 @@ DrawFunction drawFunction;
 constexpr int max_step_wait = 6;
 constexpr int num_view_modes = 6;
 
+// How many frames to ignore key press after screen switch
+constexpr int ignore_keys_wait = 2 * 30;
+
+// How many frames to wait before starting a new game
+constexpr int auto_play_wait = 15 * 30;
+
+// How many frames to press A key to prematurely exit game
+constexpr int exit_press_limit = 30;
+
 int cx, cy;
 bool paused = false;
-int view_mode = 4;
-int step_wait = 5;
-int num_steps = 0;
+uint8_t view_mode;
+uint8_t step_wait;
+
+uint32_t num_steps;
+uint32_t score;
+uint32_t lo_score = std::numeric_limits<uint32_t>::max();
+uint32_t hi_score = 0;
 
 CellCounter cell_counter;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
+
+void gameOver(bool ignore_lo_score = false);
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
@@ -91,12 +107,17 @@ void gameUpdate() {
     }
   }
   if (gb.buttons.pressed(BUTTON_A)) {
-    LifeCa &ca = cas[0];
-    if (ca.get(cx, cy)) {
-      ca.clear(cx, cy);
-    } else {
-      ca.set(cx, cy);
+    if (paused) {
+      LifeCa &ca = cas[0];
+      if (ca.get(cx, cy)) {
+        ca.clear(cx, cy);
+      } else {
+        ca.set(cx, cy);
+      }
     }
+  }
+  if (gb.buttons.held(BUTTON_A, exit_press_limit)) {
+    gameOver(true);
   }
   if (gb.buttons.pressed(BUTTON_B)) {
     paused = !paused;
@@ -125,8 +146,22 @@ void gameUpdate() {
       ++num_steps;
 
       if (total_cells == 0) {
-        startGame();
+        gameOver();
       }
+    }
+  }
+}
+
+void gameOverUpdate() {
+  ++num_steps;
+
+  if (num_steps == auto_play_wait) {
+    startGame();
+  }
+
+  if (num_steps > ignore_keys_wait) {
+    if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) {
+      startGame();
     }
   }
 }
@@ -162,6 +197,29 @@ void gameDraw() {
   displayCpuLoad();
 }
 
+void gameOverDraw() {
+  gb.display.clear();
+
+  gb.display.setColor(Color::brown);
+  gb.display.setCursor(26, 24);
+  gb.display.printf("Score%8d", score);
+
+  if (
+    lo_score != std::numeric_limits<uint32_t>::max()
+    && lo_score != hi_score
+  ) {
+    gb.display.setColor(score == lo_score ? Color::red : Color::brown);
+    gb.display.setCursor(14, 36);
+    gb.display.printf("Lo-score%8d", lo_score);
+  }
+
+  if (hi_score > lo_score) {
+    gb.display.setColor(score == hi_score ? Color::green : Color::brown);
+    gb.display.setCursor(14, 42);
+    gb.display.printf("Hi-score%8d", hi_score);
+  }
+}
+
 void startGame() {
   updateFunction = gameUpdate;
   drawFunction = gameDraw;
@@ -174,6 +232,21 @@ void startGame() {
     cell_mutations[layer].reset();
     ++layer;
   }
+
+  view_mode = 4;
+  num_steps = 0;
+}
+
+void gameOver(bool ignore_lo_score) {
+  updateFunction = gameOverUpdate;
+  drawFunction = gameOverDraw;
+
+  score = num_steps;
+  if (!ignore_lo_score) {
+    lo_score = std::min(lo_score, score);
+  }
+  hi_score = std::max(hi_score, score);
+  num_steps = 0;
 }
 
 void setup() {
@@ -185,6 +258,7 @@ void setup() {
 
   cx = 0;
   cy = 0;
+  step_wait = 5;
 
   for (int i = 0; i < num_ca_layers; ++i) {
     cell_decays[i].init(i);
