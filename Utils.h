@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <cstdint>
+
 constexpr int W = 80;
 constexpr int H = 64;
 
@@ -14,6 +16,9 @@ extern UpdateFunction updateFunction;
 extern DrawFunction drawFunction;
 
 int countBits(int val);
+
+extern uint16_t expand[16];
+void init_expand();
 
 void assertFailed(const char *function, const char *file, int lineNo, const char *expression);
 

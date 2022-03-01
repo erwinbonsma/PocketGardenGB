@@ -20,8 +20,6 @@ constexpr int bytes_per_row_ca = 4 * units_per_row_ca;
 constexpr int ca_unit_width = units_per_row_ca;
 constexpr int ca_unit_height = ca_height + 2;
 
-void init_expand();
-
 class CellCounter;
 
 class LifeCa {

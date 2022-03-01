@@ -8,6 +8,7 @@
 #include "CellCounter.h"
 #include "CellCountHistory.h"
 #include "CellMods.h"
+#include "Flower.h"
 #include "Images.h"
 #include "Utils.h"
 #include "LifeCa.h"
@@ -69,6 +70,9 @@ uint32_t num_revives;
 uint32_t score;
 uint32_t lo_score = std::numeric_limits<uint32_t>::max();
 uint32_t hi_score = 0;
+
+constexpr int num_flowers = 14;
+std::array<Flower, num_flowers> flowers;
 
 CellCountHistory cell_count_history;
 std::array<CellDecay, num_ca_layers> cell_decays;
@@ -197,6 +201,10 @@ void gameOverUpdate() {
       startGame();
     }
   }
+
+  for (auto& flower : flowers) {
+    flower.update();
+  }
 }
 
 void titleDraw() {
@@ -211,7 +219,7 @@ void titleDraw() {
   int y = 0;
   for (int i = 0; i < 14; ++i) {
     flowerImage.setFrame(i % flowerImage.frames);
-    gb.display.drawImage(x*16, y*16, flowerImage);
+    flowers[i].draw(x*16, y*16);
     if (x==4) {
       x = 0;
       ++y;
@@ -331,7 +339,10 @@ void setup() {
     cell_mutations[i].init(i);
   }
 
-  //startGame();
+  for (auto& flower : flowers) {
+    flower.init();
+  }
+
   showTitle();
 }
 

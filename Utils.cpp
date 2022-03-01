@@ -15,6 +15,17 @@ int countBits(int val) {
   return num_bits;
 }
 
+uint16_t expand[16];
+
+void init_expand() {
+  for (int i = 0; i < 16; ++i) {
+    uint16_t x = i;
+    x = (x | x <<  6) & 0x0303;
+    x = (x >> 1 | x << 4) & 0x1111;
+    expand[i] = x;
+  }
+}
+
 void assertFailed(const char *function, const char *file, int lineNo, const char *expression) {
   if (SerialUSB) {
     SerialUSB.println("=== ASSERT FAILED ===");

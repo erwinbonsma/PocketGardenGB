@@ -18,18 +18,7 @@ constexpr uint8_t bit_pos_l_src = 1;
 constexpr uint8_t bit_pos_r_dst = ca_width % bits_per_unit_ca + 1;
 constexpr uint8_t bit_pos_r_src = bit_pos_r_dst - 1;
 
-uint16_t expand[16];
-
 uint32_t rows[3 * units_per_row_ca];
-
-void init_expand() {
-  for (int i = 0; i < 16; ++i) {
-    uint16_t x = i;
-    x = (x | x <<  6) & 0x0303;
-    x = (x >> 1 | x << 4) & 0x1111;
-    expand[i] = x;
-  }
-}
 
 LifeCa::LifeCa()
 : bit_grid_(data_, ca_unit_width * bits_per_unit, ca_unit_height) {
