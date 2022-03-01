@@ -8,6 +8,7 @@
 #include "CellCounter.h"
 #include "CellCountHistory.h"
 #include "CellMods.h"
+#include "Images.h"
 #include "Utils.h"
 #include "LifeCa.h"
 
@@ -198,6 +199,30 @@ void gameOverUpdate() {
   }
 }
 
+void titleDraw() {
+  gb.display.clear();
+
+  gb.display.drawImage(22, 20, titleImage);
+  gb.display.setCursor(22, 40);
+  gb.display.setColor(Color::brown);
+  gb.display.print("by Eriban");
+
+  int x = 0;
+  int y = 0;
+  for (int i = 0; i < 14; ++i) {
+    flowerImage.setFrame(i % flowerImage.frames);
+    gb.display.drawImage(x*16, y*16, flowerImage);
+    if (x==4) {
+      x = 0;
+      ++y;
+    } else if (y % 3) {
+      x = 4;
+    } else {
+      ++x;
+    }
+  }
+}
+
 void gameDraw() {
   gb.display.clear();
 
@@ -252,6 +277,13 @@ void gameOverDraw() {
   }
 }
 
+void showTitle() {
+  updateFunction = gameOverUpdate;
+  drawFunction = titleDraw;
+
+  num_steps = 0;
+}
+
 void startGame() {
   updateFunction = gameUpdate;
   drawFunction = gameDraw;
@@ -299,7 +331,8 @@ void setup() {
     cell_mutations[i].init(i);
   }
 
-  startGame();
+  //startGame();
+  showTitle();
 }
 
 void loop() {
