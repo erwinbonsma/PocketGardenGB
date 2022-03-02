@@ -5,6 +5,6 @@
 
 extern Image titleImage;
 
-extern Image flowerImage;
+extern Image gameOverImage;
 
 #endif

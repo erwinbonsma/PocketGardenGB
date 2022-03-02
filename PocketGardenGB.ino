@@ -218,7 +218,6 @@ void titleDraw() {
   int x = 0;
   int y = 0;
   for (int i = 0; i < 14; ++i) {
-    flowerImage.setFrame(i % flowerImage.frames);
     flowers[i].draw(x*16, y*16);
     if (x==4) {
       x = 0;
@@ -264,6 +263,11 @@ void gameDraw() {
 
 void gameOverDraw() {
   gb.display.clear();
+
+  gb.display.drawImage(27, 4, gameOverImage);
+  for (int i = 0; i < 2; ++i) {
+    flowers[i].draw(8 + i * 48, 4);
+  }
 
   gb.display.setColor(Color::brown);
   gb.display.setCursor(26, 24);
