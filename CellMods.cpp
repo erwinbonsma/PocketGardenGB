@@ -70,7 +70,7 @@ void CellDecay::destroyTarget() {
     ++layer;
   }
 
-  ++destroy_count_;
+  ++decay_count_;
   target_identified_ = false;
 }
 
@@ -87,7 +87,7 @@ bool CellDecay::findTarget(const LifeCa& ca) {
 void CellDecay::reset() {
   CellFinder::reset();
 
-  destroy_count_ = 0;
+  decay_count_ = 0;
 }
 
 void CellDecay::update() {
@@ -132,12 +132,15 @@ void CellMutation::mutateTarget() {
       return;
     }
   }
+
+  ++mutation_count_;
 }
 
 void CellMutation::reset() {
   CellFinder::reset();
 
   mutate_ = false;
+  mutation_count_ = 0;
 }
 
 void CellMutation::update() {

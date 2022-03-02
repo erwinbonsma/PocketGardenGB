@@ -34,7 +34,7 @@ protected:
 };
 
 class CellDecay : public CellFinder {
-  uint16_t destroy_count_; // TEMP
+  uint16_t decay_count_;
   uint8_t mask_;
   uint8_t count_;
 
@@ -44,7 +44,7 @@ class CellDecay : public CellFinder {
   bool findTarget(const LifeCa& ca) override;
 
 public:
-  uint16_t destroyCount() const { return destroy_count_; }
+  uint16_t decayCount() const { return decay_count_; }
   uint8_t mask() const { return mask_; }
 
   void reset() override;
@@ -53,10 +53,13 @@ public:
 
 class CellMutation : public CellFinder {
   bool mutate_;
+  uint16_t mutation_count_;
 
   void mutateTarget();
 
 public:
+  uint16_t mutationCount() const { return mutation_count_; }
+
   void reset() override;
   void update() override;
 };

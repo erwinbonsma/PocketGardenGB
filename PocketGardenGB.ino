@@ -69,7 +69,8 @@ uint32_t num_steps;
 uint32_t num_revives;
 uint32_t score;
 uint32_t lo_score = std::numeric_limits<uint32_t>::max();
-uint32_t hi_score = 0;
+// Separate hi-score for auto-play (num_revives == 0) and interactive game
+uint32_t hi_score[2];
 
 constexpr int num_flowers = 14;
 std::array<Flower, num_flowers> flowers;
@@ -248,8 +249,9 @@ void gameDraw() {
   gb.display.setColor(INDEX_WHITE);
   gb.display.setCursor(1, 1);
   if (view_mode < 4) {
-    gb.display.printf("%d/%d",
-      cell_decays[view_mode].destroyCount(),
+    gb.display.printf("%d/%d/%d",
+      cell_decays[view_mode].decayCount(),
+      cell_mutations[view_mode].mutationCount(),
       cell_count_history.numCells(view_mode)
     );
   }
@@ -269,23 +271,51 @@ void gameOverDraw() {
     flowers[i].draw(8 + i * 48, 4);
   }
 
-  gb.display.setColor(Color::brown);
-  gb.display.setCursor(26, 24);
-  gb.display.printf("Score%8d", score);
-
-  if (
-    lo_score != std::numeric_limits<uint32_t>::max()
-    && lo_score != hi_score
-  ) {
-    gb.display.setColor(score == lo_score ? Color::red : Color::brown);
-    gb.display.setCursor(14, 36);
-    gb.display.printf("Lo-score%8d", lo_score);
+  uint32_t total_decays = 0;
+  for (const auto& decay : cell_decays) {
+    total_decays += decay.decayCount();
+  }
+  uint32_t total_mutations = 0;
+  for (const auto& mutation : cell_mutations) {
+    total_mutations += mutation.mutationCount();
   }
 
-  if (hi_score > lo_score) {
-    gb.display.setColor(score == hi_score ? Color::green : Color::brown);
-    gb.display.setCursor(14, 42);
-    gb.display.printf("Hi-score%8d", hi_score);
+  gb.display.setColor(Color::brown);
+  uint8_t y = 26;
+  gb.display.setCursor(18, y);
+  gb.display.printf("Decays%8d", total_decays);
+  y+= 6;
+
+  gb.display.setCursor(6, y);
+  gb.display.printf("Mutations%8d", total_mutations);
+  y+= 6;
+
+  if (num_revives > 0) {
+    gb.display.setCursor(14, y);
+    gb.display.printf("Revives%8d", num_revives);
+    y+= 6;
+  }
+
+  gb.display.setCursor(22, y);
+  gb.display.printf("Score%8d", score);
+  y+= 10;
+
+  bool auto_play = num_revives == 0;
+  if (
+    auto_play
+    && lo_score != std::numeric_limits<uint32_t>::max()
+    && lo_score != hi_score[auto_play]
+  ) {
+    gb.display.setColor(score == lo_score ? Color::red : Color::brown);
+    gb.display.setCursor(10, y);
+    gb.display.printf("Lo-score%8d", lo_score);
+    y+= 6;
+  }
+
+  if (!auto_play || hi_score[auto_play] > lo_score) {
+    gb.display.setColor(score == hi_score[auto_play] ? Color::green : Color::brown);
+    gb.display.setCursor(10, y);
+    gb.display.printf("Hi-score%8d", hi_score[auto_play]);
   }
 }
 
@@ -323,7 +353,8 @@ void gameOver(bool ignore_lo_score) {
   if (!ignore_lo_score) {
     lo_score = std::min(lo_score, score);
   }
-  hi_score = std::max(hi_score, score);
+  bool auto_play = num_revives == 0;
+  hi_score[auto_play] = std::max(hi_score[auto_play], score);
   num_steps = 0;
 }
 
