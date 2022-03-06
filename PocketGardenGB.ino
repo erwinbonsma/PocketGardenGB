@@ -11,6 +11,7 @@
 #include "Images.h"
 #include "Utils.h"
 #include "LifeCa.h"
+#include "Sfx.h"
 
 // Color palette chosen such that blends of CA cells is somewhat logical.
 // - black is no cells, and white is all cells
@@ -88,6 +89,20 @@ std::array<Flower, num_flowers> flowers;
 CellCountHistory cell_count_history;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
+
+bool show_lo_score() {
+  bool auto_play = num_revives == 0;
+  return (
+    auto_play
+    && lo_score != std::numeric_limits<uint32_t>::max()
+    && lo_score != hi_score[auto_play]
+  );
+}
+
+bool show_hi_score() {
+  bool auto_play = num_revives == 0;
+  return !auto_play || hi_score[auto_play] != lo_score;
+}
 
 void gameOver(bool ignore_lo_score = false);
 
@@ -325,19 +340,15 @@ void gameOverDraw() {
   gb.display.printf("Score%8d", score);
   y+= 10;
 
-  bool auto_play = num_revives == 0;
-  if (
-    auto_play
-    && lo_score != std::numeric_limits<uint32_t>::max()
-    && lo_score != hi_score[auto_play]
-  ) {
+  if (show_lo_score()) {
     gb.display.setColor(score == lo_score ? Color::red : Color::brown);
     gb.display.setCursor(10, y);
     gb.display.printf("Lo-score%8d", lo_score);
     y+= 6;
   }
 
-  if (!auto_play || hi_score[auto_play] > lo_score) {
+  bool auto_play = num_revives == 0;
+  if (show_hi_score()) {
     gb.display.setColor(score == hi_score[auto_play] ? Color::green : Color::brown);
     gb.display.setCursor(10, y);
     gb.display.printf("Hi-score%8d", hi_score[auto_play]);
@@ -382,6 +393,15 @@ void gameOver(bool ignore_lo_score) {
   hi_score[auto_play] = std::max(hi_score[auto_play], score);
   num_steps = 0;
 
+  if (show_hi_score && score == hi_score[auto_play]) {
+    gb.sound.playSong(levelHiSong);
+  } else if (show_lo_score && score == lo_score) {
+    gb.sound.playSong(levelLoSong);
+  } else {
+    gb.sound.fx(gameOverSfx);
+  }
+
+  // Stop showing "Hold B to exit" pop-up
   gb.gui.hidePopup();
 }
 
