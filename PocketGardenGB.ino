@@ -50,6 +50,14 @@ const MultiLang cooling_down_txt[1] = {
   {LANG_EN, "Cannot revive yet"},
 };
 
+constexpr int32_t VMAJOR = 1;
+constexpr int32_t VMINOR = 0;
+
+constexpr uint16_t SAVEINDEX_VMAJOR = 0;
+constexpr uint16_t SAVEINDEX_VMINOR = 1;
+constexpr uint16_t SAVEINDEX_LOSCORE = 2;
+constexpr uint16_t SAVEINDEX_HISCORE = 3;
+
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
@@ -84,7 +92,9 @@ uint32_t num_steps;
 uint32_t num_revives;
 int revive_cell_delta;
 uint32_t score;
-uint32_t lo_score = std::numeric_limits<uint32_t>::max();
+
+// Store lo score signed (to avoid type-casts when saving). It will never get big.
+int32_t lo_score = std::numeric_limits<int32_t>::max();
 // Separate hi-score for auto-play (num_revives == 0) and interactive game
 uint32_t hi_score[2];
 
@@ -100,7 +110,7 @@ bool show_lo_score() {
   bool auto_play = num_revives == 0;
   return (
     auto_play
-    && lo_score != std::numeric_limits<uint32_t>::max()
+    && lo_score != std::numeric_limits<int32_t>::max()
     && lo_score != hi_score[auto_play]
   );
 }
@@ -108,6 +118,26 @@ bool show_lo_score() {
 bool show_hi_score() {
   bool auto_play = num_revives == 0;
   return !auto_play || hi_score[auto_play] != lo_score;
+}
+
+void load_hi_scores() {
+  if (
+    gb.save.get(SAVEINDEX_VMAJOR) != VMAJOR ||
+    gb.save.get(SAVEINDEX_VMINOR) != VMINOR
+  ) {
+    gb.save.set(SAVEINDEX_VMAJOR, VMAJOR);
+    gb.save.set(SAVEINDEX_VMINOR, VMINOR);
+
+    gb.save.set(SAVEINDEX_LOSCORE, lo_score);
+    for (int i = 0; i < 2; ++i ) {
+      gb.save.set(SAVEINDEX_HISCORE, (int32_t)hi_score[i]);
+    }
+  } else {
+    lo_score = gb.save.get(SAVEINDEX_LOSCORE);
+    for (int i = 0; i < 2; ++i ) {
+      hi_score[i] = (uint32_t)gb.save.get(SAVEINDEX_HISCORE + i);
+    }
+  }
 }
 
 void switch_view_mode(int delta) {
@@ -431,20 +461,32 @@ void gameOver(bool ignore_lo_score) {
   drawFunction = gameOverDraw;
 
   score = num_steps;
+  bool improved_lo_score = false;
   if (!ignore_lo_score) {
-    lo_score = std::min(lo_score, score);
+    if (score < lo_score) {
+      lo_score = (int32_t)score;
+      gb.save.set(SAVEINDEX_LOSCORE, lo_score);
+      improved_lo_score = true;
+    }
   }
-  bool auto_play = num_revives == 0;
-  hi_score[auto_play] = std::max(hi_score[auto_play], score);
-  num_steps = 0;
 
-  if (show_hi_score && score == hi_score[auto_play]) {
+  bool auto_play = num_revives == 0;
+  bool improved_hi_score = false;
+  if (score > hi_score[auto_play]) {
+    hi_score[auto_play] = score;
+    gb.save.set(SAVEINDEX_HISCORE + auto_play, (int32_t)score);
+    improved_hi_score = true;
+  }
+
+  if (show_hi_score && improved_hi_score) {
     gb.sound.playSong(levelHiSong);
-  } else if (show_lo_score && score == lo_score) {
+  } else if (show_lo_score && improved_lo_score) {
     gb.sound.playSong(levelLoSong);
   } else {
     gb.sound.fx(gameOverSfx);
   }
+
+  num_steps = 0;
 
   // Stop showing "Hold B to exit" pop-up
   gb.gui.hidePopup();
@@ -473,6 +515,8 @@ void setup() {
   for (auto& flower : flowers) {
     flower.init();
   }
+
+  load_hi_scores();
 
   showTitle();
 }
