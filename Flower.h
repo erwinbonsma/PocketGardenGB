@@ -2,6 +2,8 @@
 #define FLOWER_H
 
 #include <Gamebuino-Meta.h>
+#undef min
+#undef max
 
 constexpr int num_flower_colors = 4;
 constexpr int num_flower_frames = 11;

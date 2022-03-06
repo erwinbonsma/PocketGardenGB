@@ -1,5 +1,7 @@
 #include "Flower.h"
 
+#include <algorithm>
+
 #include "Utils.h"
 
 constexpr int flower_grow_cycle = 90;
@@ -255,9 +257,9 @@ void Flower::draw(int x, int y) {
   assertTrue(x % 4 == 0);
 
   // Draw three layers
-  for (int i = 3; --i >= 0; ) {
-    int sprite_index = sprites_[(i + cycle_) % num_flower_frames];
-    int color_shift = colors_[(i + cycle_) % num_flower_colors];
+  for (int i = std::min(3, (int)cycle_); --i >= 0; ) {
+    int sprite_index = sprites_[(cycle_ - i) % num_flower_frames];
+    int color_shift = colors_[(cycle_ - i) % num_flower_colors];
 
     const uint8_t *src_p = &flowerData[sprite_index * 32];
     uint16_t *dst_p = &gb.display._buffer[(W * y + x) / 4];

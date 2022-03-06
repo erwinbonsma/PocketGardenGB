@@ -111,6 +111,16 @@ void revive() {
   }
 }
 
+void titleUpdate() {
+  if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) {
+    startGame();
+  }
+
+  for (auto& flower : flowers) {
+    flower.update();
+  }
+}
+
 void gameUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     if (paused) {
@@ -320,7 +330,7 @@ void gameOverDraw() {
 }
 
 void showTitle() {
-  updateFunction = gameOverUpdate;
+  updateFunction = titleUpdate;
   drawFunction = titleDraw;
 
   num_steps = 0;
