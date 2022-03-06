@@ -40,6 +40,14 @@ const Color caColorPalette[16] = {
   Color::white,
 };
 
+constexpr int num_ui_languages = 1;
+const MultiLang exit_hint_txt[1] = {
+  {LANG_EN, "Hold B to exit"},
+};
+const MultiLang cooling_down_txt[1] = {
+  {LANG_EN, "Cannot revive yet"},
+};
+
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
@@ -54,6 +62,9 @@ constexpr int auto_play_wait = 15 * 30;
 
 // How many frames to press A key to prematurely exit game
 constexpr int exit_press_limit = 30;
+
+// The number of frames popups are shown
+constexpr int popup_duration = 60;
 
 // How many steps to wait until revive is allowed again
 constexpr int min_revive_wait = 30;
@@ -149,7 +160,7 @@ void gameUpdate() {
       step_wait = std::min(step_wait + 1, max_step_wait);
     }
   }
-  if (gb.buttons.pressed(BUTTON_A)) {
+  if (gb.buttons.pressed(BUTTON_B)) {
     if (paused) {
       LifeCa &ca = cas[0];
       if (ca.get(cx, cy)) {
@@ -159,16 +170,21 @@ void gameUpdate() {
       }
     }
   }
-  if (gb.buttons.held(BUTTON_A, exit_press_limit)) {
+  if (gb.buttons.pressed(BUTTON_B)) {
+    gb.gui.popup(exit_hint_txt, popup_duration);
+  } else if (gb.buttons.held(BUTTON_B, exit_press_limit)) {
     gameOver(true);
   }
-  if (gb.buttons.pressed(BUTTON_B)) {
+
+  if (gb.buttons.pressed(BUTTON_A)) {
     if (!revive_cooldown) {
       revive();
       revive_cooldown = min_revive_wait;
       ++num_revives;
       cell_count_history.countCells();
       return;
+    } else {
+      gb.gui.popup(cooling_down_txt, popup_duration);
     }
     //paused = !paused;
   }
@@ -365,6 +381,8 @@ void gameOver(bool ignore_lo_score) {
   bool auto_play = num_revives == 0;
   hi_score[auto_play] = std::max(hi_score[auto_play], score);
   num_steps = 0;
+
+  gb.gui.hidePopup();
 }
 
 void setup() {
