@@ -66,13 +66,14 @@ const TuneSpec sfx4 = TuneSpec {
 };
 
 // Game Over
+// TODO: Can volume fade-out at end using SLIDE without sound artifacts?
 const NoteSpec sfx5Notes[8] = {
     NoteSpec { .note=Note::A4, .vol=7, .wav=WaveForm::PHASER, .fx=Effect::NONE },
     NoteSpec { .note=Note::G4, .vol=6, .wav=WaveForm::PHASER, .fx=Effect::NONE },
     NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
-    NoteSpec { .note=Note::E4, .vol=4, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
-    NoteSpec { .note=Note::E4, .vol=3, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
-    NoteSpec { .note=Note::E4, .vol=2, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
     SILENCE,
     SILENCE,
 };
