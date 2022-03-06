@@ -282,7 +282,7 @@ void titleDraw() {
 
   gb.display.drawImage(22, 20, titleImage);
   gb.display.setCursor(22, 40);
-  gb.display.setColor(Color::brown);
+  gb.display.setColor(Color::darkgray);
   gb.display.print("by Eriban");
 
   int x = 0;
