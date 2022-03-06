@@ -61,7 +61,7 @@ constexpr uint16_t SAVEINDEX_HISCORE = 3;
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-constexpr int max_step_wait = 8; //6;
+constexpr int max_step_wait = 6;
 constexpr int num_view_modes = 6;
 
 // How many frames to ignore key press after screen switch
@@ -82,8 +82,6 @@ constexpr int min_revive_wait = 32;
 constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
 constexpr int lights_revive_cells_bin_size = 256 / 8;
 
-int cx, cy;
-bool paused = false;
 uint8_t view_mode;
 uint8_t step_wait;
 uint8_t revive_cooldown;
@@ -153,16 +151,13 @@ void switch_view_mode(int delta) {
 }
 
 void gameOver(bool ignore_lo_score = false);
+void startGame();
 
 void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
   gb.display.setColor(cpu_load < 80 ? Color::green : (cpu_load < 100 ? Color::yellow : Color::red));
   gb.display.setCursor(1, 58);
   gb.display.printf("%d", cpu_load);
-
-  if (revive_cooldown != 0) {
-    gb.display.printf(" revived %d", revive_cell_delta);
-  }
 }
 
 // Use LEDs to indicate how successful a revive was, and that next revive cannot yet be started
@@ -208,42 +203,16 @@ void titleUpdate() {
 
 void gameUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
-    if (paused) {
-      cx = (cx + W - 1) % W;
-    } else {
-      switch_view_mode(-1);
-    }
+    switch_view_mode(-1);
   }
   if (gb.buttons.pressed(BUTTON_RIGHT)) {
-    if (paused) {
-      cx = (cx + 1) % W;
-    } else {
-      switch_view_mode(1);
-    }
+    switch_view_mode(1);
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
-    if (paused) {
-      cy = (cy + H - 1) % H;
-    } else {
-      step_wait = std::max(step_wait - 1, 0);
-    }
+    step_wait = std::max(step_wait - 1, 0);
   }
   if (gb.buttons.pressed(BUTTON_DOWN)) {
-    if (paused) {
-      cy = (cy + 1) % H;
-    } else {
-      step_wait = std::min(step_wait + 1, max_step_wait);
-    }
-  }
-  if (gb.buttons.pressed(BUTTON_B)) {
-    if (paused) {
-      LifeCa &ca = cas[0];
-      if (ca.get(cx, cy)) {
-        ca.clear(cx, cy);
-      } else {
-        ca.set(cx, cy);
-      }
-    }
+    step_wait = std::min(step_wait + 1, max_step_wait);
   }
   if (gb.buttons.pressed(BUTTON_B)) {
     gb.gui.popup(exit_hint_txt, popup_duration);
@@ -266,37 +235,33 @@ void gameUpdate() {
 
       revive_cooldown = min_revive_wait;
 
+      // Exit here to skip CA update (to reduce CPU load)
       return;
-    } else {
-      gb.gui.popup(cooling_down_txt, popup_duration);
     }
-    //paused = !paused;
   }
 
-  if (!paused) {
-    if (gb.frameCount % (1 << step_wait) == 0) {
-      int layer = 0;
-      int history_index = num_steps % history_len;
-      int total_cells = 0;
-      for (auto& ca : cas) {
-        uint16_t cell_count = cell_count_history.numCells(layer);
-        if (cell_count) {
-          ca.step();
-          cell_decays[layer].update();
-          cell_mutations[layer].update();
-          liveliness_checks[layer].update(cell_count);
-        }
+  if (gb.frameCount % (1 << step_wait) == 0) {
+    int layer = 0;
+    int history_index = num_steps % history_len;
+    int total_cells = 0;
+    for (auto& ca : cas) {
+      uint16_t cell_count = cell_count_history.numCells(layer);
+      if (cell_count) {
+        ca.step();
+        cell_decays[layer].update();
+        cell_mutations[layer].update();
+        liveliness_checks[layer].update(cell_count);
+      }
 
-        ++layer;
-      }
-      ++num_steps;
+      ++layer;
+    }
+    ++num_steps;
 
-      if (cell_count_history.countCells() == 0) {
-        gameOver();
-      }
-      if (revive_cooldown > 0) {
-        --revive_cooldown;
-      }
+    if (cell_count_history.countCells() == 0) {
+      gameOver();
+    }
+    if (revive_cooldown > 0) {
+      --revive_cooldown;
     }
   }
 }
@@ -358,9 +323,12 @@ void gameDraw() {
     cell_count_history.plot();
   }
 
-  gb.display.setColor(INDEX_WHITE);
-  gb.display.setCursor(1, 1);
+  showReviveCooldown();
+
+#ifdef DEVELOPMENT
   if (view_mode < num_ca_layers) {
+    gb.display.setColor(INDEX_WHITE);
+    gb.display.setCursor(1, 1);
     gb.display.printf("%d/%d/%d",
       cell_decays[view_mode].decayCount(),
       cell_mutations[view_mode].mutationCount(),
@@ -368,13 +336,8 @@ void gameDraw() {
     );
   }
 
-  showReviveCooldown();
-
-  if (paused) {
-    gb.display.drawPixel(cx, cy, YELLOW);
-  }
-
   displayCpuLoad();
+#endif
 }
 
 void gameOverDraw() {
@@ -502,8 +465,6 @@ void setup() {
 
   init_expand();
 
-  cx = 0;
-  cy = 0;
   step_wait = 0;
 
   for (int i = 0; i < num_ca_layers; ++i) {
