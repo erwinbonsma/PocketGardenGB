@@ -12,6 +12,7 @@ class CellCountHistory {
 public:
   void reset();
   int countCells();
+  int numEmptyLayers();
   int totalCells();
   void plot();
 

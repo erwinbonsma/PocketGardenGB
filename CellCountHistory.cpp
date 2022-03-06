@@ -125,6 +125,18 @@ int CellCountHistory::totalCells() {
   return total;
 }
 
+int CellCountHistory::numEmptyLayers() {
+  int num_empty = 0;
+
+  for (int i = num_ca_layers; --i >= 0; ) {
+    if (cell_counts_[i][last_entry_index_] == 0) {
+      ++num_empty;
+    }
+  }
+
+  return num_empty;
+}
+
 
 void CellCountHistory::plot() {
   uint8_t* buf = reinterpret_cast<uint8_t*>(gb.display._buffer);

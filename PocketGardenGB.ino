@@ -110,6 +110,18 @@ bool show_hi_score() {
   return !auto_play || hi_score[auto_play] != lo_score;
 }
 
+void switch_view_mode(int delta) {
+  bool skip_combined_view = cell_count_history.numEmptyLayers() >= num_ca_layers - 1;
+  do {
+    view_mode = (view_mode + num_view_modes + delta) % num_view_modes;
+  } while (
+    // Skip empty layers
+    (view_mode < num_ca_layers && cell_count_history.numCells(view_mode) == 0)
+    // Skip combined view when only one layer remains
+    || (skip_combined_view && view_mode == num_ca_layers)
+  );
+}
+
 void gameOver(bool ignore_lo_score = false);
 
 void displayCpuLoad() {
@@ -169,14 +181,14 @@ void gameUpdate() {
     if (paused) {
       cx = (cx + W - 1) % W;
     } else {
-      view_mode = (view_mode + num_view_modes - 1) % num_view_modes;
+      switch_view_mode(-1);
     }
   }
   if (gb.buttons.pressed(BUTTON_RIGHT)) {
     if (paused) {
       cx = (cx + 1) % W;
     } else {
-      view_mode = (view_mode + 1) % num_view_modes;
+      switch_view_mode(1);
     }
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
@@ -304,10 +316,10 @@ void gameDraw() {
   gb.display.clear();
   gb.lights.clear();
 
-  if (view_mode <= 4) {
+  if (view_mode <= num_ca_layers) {
     int layer = 0;
     for (const auto& ca : cas) {
-      if (view_mode == 4 || layer == view_mode) {
+      if (view_mode == num_ca_layers || layer == view_mode) {
         ca.draw(layer);
       }
       ++layer;
@@ -318,7 +330,7 @@ void gameDraw() {
 
   gb.display.setColor(INDEX_WHITE);
   gb.display.setCursor(1, 1);
-  if (view_mode < 4) {
+  if (view_mode < num_ca_layers) {
     gb.display.printf("%d/%d/%d",
       cell_decays[view_mode].decayCount(),
       cell_mutations[view_mode].mutationCount(),
