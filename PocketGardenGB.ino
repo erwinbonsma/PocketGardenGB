@@ -69,7 +69,10 @@ constexpr int exit_press_limit = 30;
 constexpr int popup_duration = 60;
 
 // How many steps to wait until revive is allowed again
-constexpr int min_revive_wait = 30;
+constexpr int min_revive_wait = 32;
+
+constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
+constexpr int lights_revive_cells_bin_size = 256 / 8;
 
 int cx, cy;
 bool paused = false;
@@ -79,6 +82,7 @@ uint8_t revive_cooldown;
 
 uint32_t num_steps;
 uint32_t num_revives;
+int revive_cell_delta;
 uint32_t score;
 uint32_t lo_score = std::numeric_limits<uint32_t>::max();
 // Separate hi-score for auto-play (num_revives == 0) and interactive game
@@ -115,7 +119,19 @@ void displayCpuLoad() {
   gb.display.printf("%d", cpu_load);
 
   if (revive_cooldown != 0) {
-    gb.display.printf(" revived!");
+    gb.display.printf(" revived %d", revive_cell_delta);
+  }
+}
+
+// Use LEDs to indicate how successful a revive was, and that next revive cannot yet be started
+void showReviveCooldown() {
+  int num_leds = (revive_cooldown + lights_revive_ticks_bin_size - 1) / lights_revive_ticks_bin_size;
+
+  int num_green_leds = (revive_cell_delta + lights_revive_cells_bin_size - 1) / lights_revive_cells_bin_size;
+  for (int i = num_leds; --i >= 0; ) {
+    gb.lights.drawPixel(
+      i % 2, i / 2, i < num_green_leds ? Color::green : Color::red
+    );
   }
 }
 
@@ -195,10 +211,19 @@ void gameUpdate() {
 
   if (gb.buttons.pressed(BUTTON_A)) {
     if (!revive_cooldown) {
+      int cells_before = cell_count_history.totalCells();
+
       revive();
-      revive_cooldown = min_revive_wait;
       ++num_revives;
-      cell_count_history.countCells();
+
+      revive_cell_delta = cell_count_history.countCells() - cells_before;
+      assertTrue(revive_cell_delta >= 0);
+      if (!revive_cell_delta) {
+        gb.sound.fx(decaySfx);
+      }
+
+      revive_cooldown = min_revive_wait;
+
       return;
     } else {
       gb.gui.popup(cooling_down_txt, popup_duration);
@@ -277,6 +302,7 @@ void titleDraw() {
 
 void gameDraw() {
   gb.display.clear();
+  gb.lights.clear();
 
   if (view_mode <= 4) {
     int layer = 0;
@@ -299,6 +325,8 @@ void gameDraw() {
       cell_count_history.numCells(view_mode)
     );
   }
+
+  showReviveCooldown();
 
   if (paused) {
     gb.display.drawPixel(cx, cy, YELLOW);
@@ -408,6 +436,9 @@ void gameOver(bool ignore_lo_score) {
 
   // Stop showing "Hold B to exit" pop-up
   gb.gui.hidePopup();
+
+  // Clear lights
+  gb.lights.clear();
 }
 
 void setup() {

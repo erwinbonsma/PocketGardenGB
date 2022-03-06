@@ -12,6 +12,7 @@ class CellCountHistory {
 public:
   void reset();
   int countCells();
+  int totalCells();
   void plot();
 
   uint16_t numCells(int layer) { return cell_counts_[layer][last_entry_index_]; }

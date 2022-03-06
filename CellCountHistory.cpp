@@ -115,6 +115,17 @@ int CellCountHistory::countCells() {
   return total;
 }
 
+int CellCountHistory::totalCells() {
+  int total = 0;
+
+  for (int i = num_ca_layers; --i >= 0; ) {
+    total += cell_counts_[i][last_entry_index_];
+  }
+
+  return total;
+}
+
+
 void CellCountHistory::plot() {
   uint8_t* buf = reinterpret_cast<uint8_t*>(gb.display._buffer);
 
