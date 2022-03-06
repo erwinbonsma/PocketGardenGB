@@ -9,9 +9,10 @@
 #include "CellMods.h"
 #include "Flower.h"
 #include "Images.h"
-#include "Utils.h"
 #include "LifeCa.h"
+#include "LivelinessCheck.h"
 #include "Sfx.h"
+#include "Utils.h"
 
 // Color palette chosen such that blends of CA cells is somewhat logical.
 // - black is no cells, and white is all cells
@@ -89,6 +90,7 @@ std::array<Flower, num_flowers> flowers;
 CellCountHistory cell_count_history;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
+std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
 
 bool show_lo_score() {
   bool auto_play = num_revives == 0;
@@ -210,10 +212,12 @@ void gameUpdate() {
       int history_index = num_steps % history_len;
       int total_cells = 0;
       for (auto& ca : cas) {
-        if (cell_count_history.numCells(layer)) {
+        uint16_t cell_count = cell_count_history.numCells(layer);
+        if (cell_count) {
           ca.step();
           cell_decays[layer].update();
           cell_mutations[layer].update();
+          liveliness_checks[layer].update(cell_count);
         }
 
         ++layer;
@@ -372,6 +376,7 @@ void startGame() {
     ca.randomize();
     cell_decays[layer].reset();
     cell_mutations[layer].reset();
+    liveliness_checks[layer].reset();
     ++layer;
   }
   cell_count_history.reset();
@@ -419,6 +424,7 @@ void setup() {
   for (int i = 0; i < num_ca_layers; ++i) {
     cell_decays[i].init(i);
     cell_mutations[i].init(i);
+    liveliness_checks[i].init(aliveSfx[i]);
   }
 
   for (auto& flower : flowers) {
