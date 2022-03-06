@@ -5,7 +5,6 @@
 #include <array>
 #include <limits>
 
-#include "CellCounter.h"
 #include "CellCountHistory.h"
 #include "CellMods.h"
 #include "Flower.h"

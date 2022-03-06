@@ -4,12 +4,18 @@
 #undef min
 #undef max
 
-// TODO: Move implementation to here
-#include "CellCounter.h"
+#include <array>
 
 #include "LifeCa.h"
 
-CellCounter cell_counter;
+class CellCounter {
+  std::array<uint8_t, 256> lookup_;
+
+public:
+  CellCounter();
+
+  int countCells(const LifeCa& ca) const;
+};
 
 // Generated via generate_lookups.py
 constexpr uint16_t y_lookup[H] = {
@@ -23,6 +29,13 @@ constexpr uint16_t y_lookup[H] = {
  1212, 1252, 1294, 1336, 1378, 1422, 1466, 1510
 };
 
+constexpr uint32_t mask_c = ~(0x1 << bits_per_unit_ca);
+constexpr uint32_t mask_l = mask_c & ~0x1;
+constexpr int num_bits_last_unit = ca_width % bits_per_unit_ca + 1;
+constexpr uint32_t mask_r = mask_c & ((uint32_t)~0x0) >> (bits_per_unit - num_bits_last_unit);
+
+CellCounter cell_counter;
+
 int cellCountToY(int cellCount) {
   int y = (y_lookup[32] <= cellCount) ? 32 : 0;
 
@@ -33,6 +46,46 @@ int cellCountToY(int cellCount) {
   y += (y_lookup[y +  1] <= cellCount) ?  1 : 0;
 
   return y;
+}
+
+CellCounter::CellCounter() {
+  for (int i = 0; i < 256; ++i) {
+    lookup_[i] = countBits(i);
+  }
+}
+
+int CellCounter::countCells(const LifeCa& ca) const {
+  int num_bits = 0;
+  int unit_index = 0;
+
+  const uint32_t *src_p = &ca.data_[units_per_row_ca];
+  const uint32_t *end_p = src_p + units_per_row_ca * ca_height;
+
+  while (src_p < end_p) {
+    int v;
+    switch (unit_index) {
+      case 0:
+        v = *src_p & mask_l;
+        unit_index = 1;
+        break;
+      case units_per_row_ca - 1:
+        v = *src_p & mask_r;
+        unit_index = 0;
+        break;
+      default:
+        v = *src_p & mask_c;
+        ++unit_index;
+    }
+
+    num_bits += lookup_[v & 0xff];
+    num_bits += lookup_[(v >>  8) & 0xff];
+    num_bits += lookup_[(v >> 16) & 0xff];
+    num_bits += lookup_[(v >> 24) & 0xff];
+
+    ++src_p;
+  }
+
+  return num_bits;
 }
 
 void CellCountHistory::reset() {
