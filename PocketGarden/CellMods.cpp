@@ -129,11 +129,10 @@ void CellMutation::mutateTarget() {
 
     if (!ca.get(x, y)) {
       ca.set(x, y);
+      ++mutation_count_;
       return;
     }
   }
-
-  ++mutation_count_;
 }
 
 void CellMutation::reset() {
