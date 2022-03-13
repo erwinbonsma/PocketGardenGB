@@ -240,29 +240,29 @@ void gameUpdate() {
     }
   }
 
-  if (gb.frameCount % (1 << step_wait) == 0) {
-    int layer = 0;
-    int history_index = num_steps % history_len;
-    int total_cells = 0;
-    for (auto& ca : cas) {
-      uint16_t cell_count = cell_count_history.numCells(layer);
-      if (cell_count) {
-        ca.step();
-        cell_decays[layer].update();
-        cell_mutations[layer].update();
-        liveliness_checks[layer].update(cell_count);
-      }
+  if (gb.frameCount % (1 << step_wait) != 0) return;
 
-      ++layer;
+  int layer = 0;
+  int history_index = num_steps % history_len;
+  int total_cells = 0;
+  for (auto& ca : cas) {
+    uint16_t cell_count = cell_count_history.numCells(layer);
+    if (cell_count) {
+      ca.step();
+      cell_decays[layer].update();
+      cell_mutations[layer].update();
+      liveliness_checks[layer].update(cell_count);
     }
-    ++num_steps;
 
-    if (cell_count_history.countCells() == 0) {
-      gameOver();
-    }
-    if (revive_cooldown > 0) {
-      --revive_cooldown;
-    }
+    ++layer;
+  }
+  ++num_steps;
+
+  if (cell_count_history.countCells() == 0) {
+    gameOver();
+  }
+  if (revive_cooldown > 0) {
+    --revive_cooldown;
   }
 }
 
@@ -441,9 +441,9 @@ void gameOver(bool ignore_lo_score) {
     improved_hi_score = true;
   }
 
-  if (show_hi_score && improved_hi_score) {
+  if (improved_hi_score && show_hi_score()) {
     gb.sound.playSong(levelHiSong);
-  } else if (show_lo_score && improved_lo_score) {
+  } else if (improved_lo_score && show_lo_score()) {
     gb.sound.playSong(levelLoSong);
   } else {
     gb.sound.fx(gameOverSfx);
