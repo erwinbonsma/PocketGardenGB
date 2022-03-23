@@ -62,6 +62,7 @@ UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
 constexpr int max_step_wait = 6;
+constexpr int ini_step_wait = 5;
 constexpr int num_view_modes = 6;
 
 // How many frames to ignore key press after screen switch
@@ -83,6 +84,7 @@ constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
 constexpr int lights_revive_cells_bin_size = 256 / 8;
 
 uint8_t view_mode;
+uint8_t target_step_wait;
 uint8_t step_wait;
 uint8_t revive_cooldown;
 
@@ -209,10 +211,10 @@ void gameUpdate() {
     switch_view_mode(1);
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
-    step_wait = std::max(step_wait - 1, 0);
+    target_step_wait = std::max(target_step_wait - 1, 0);
   }
   if (gb.buttons.pressed(BUTTON_DOWN)) {
-    step_wait = std::min(step_wait + 1, max_step_wait);
+    target_step_wait = std::min(target_step_wait + 1, max_step_wait);
   }
   if (gb.buttons.pressed(BUTTON_B)) {
     gb.gui.popup(exit_hint_txt, popup_duration);
@@ -241,6 +243,14 @@ void gameUpdate() {
   }
 
   if (gb.frameCount % (1 << step_wait) != 0) return;
+
+  if (target_step_wait != step_wait && gb.frameCount % 32 == 0) {
+    if (step_wait < target_step_wait) {
+      ++step_wait;
+    } else {
+      --step_wait;
+    }
+  }
 
   int layer = 0;
   int history_index = num_steps % history_len;
@@ -417,6 +427,7 @@ void startGame() {
   view_mode = 4;
   num_steps = 0;
   num_revives = 0;
+  step_wait = ini_step_wait;
 }
 
 void gameOver(bool ignore_lo_score) {
@@ -465,7 +476,7 @@ void setup() {
 
   init_expand();
 
-  step_wait = 0;
+  target_step_wait = 0;
 
   for (int i = 0; i < num_ca_layers; ++i) {
     cell_decays[i].init(i);
