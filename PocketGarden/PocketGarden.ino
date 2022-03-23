@@ -14,6 +14,8 @@
 #include "Sfx.h"
 #include "Utils.h"
 
+#define DEVELOPMENT
+
 // Color palette chosen such that blends of CA cells is somewhat logical.
 // - black is no cells, and white is all cells
 // - The core layers colors are: darkblue, purple, green, darkgray
@@ -213,11 +215,14 @@ void updateGarden() {
       bool visible = view_mode >= num_ca_layers || layer == view_mode;
 
       ca.step();
-      cell_decays[layer].update();
-      cell_mutations[layer].update();
 
       if (liveliness_checks[layer].update(cell_count) && visible) {
         gb.sound.fx(aliveSfx[layer]);
+      } else if (liveliness_checks[layer].liveliness() < 100) {
+        if (cell_decays[layer].update() && visible) {
+          gb.sound.fx(decaySfx);
+        }
+        cell_mutations[layer].update();
       }
     }
 
@@ -348,10 +353,11 @@ void gameDraw() {
   if (view_mode < num_ca_layers) {
     gb.display.setColor(INDEX_WHITE);
     gb.display.setCursor(1, 1);
-    gb.display.printf("%d/%d/%d",
+    gb.display.printf("%d/%d/%d/%d",
       cell_decays[view_mode].decayCount(),
       cell_mutations[view_mode].mutationCount(),
-      cell_count_history.numCells(view_mode)
+      cell_count_history.numCells(view_mode),
+      liveliness_checks[view_mode].liveliness()
     );
   }
 

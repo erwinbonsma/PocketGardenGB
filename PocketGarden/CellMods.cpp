@@ -2,6 +2,10 @@
 
 #include "Utils.h"
 
+constexpr int max_cell_find_attempts = 16;
+constexpr int num_decay_death_ticks = 16;
+constexpr int avg_mutation_period = 128;
+
 void CellFinder::init(uint8_t target_layer) {
   target_layer_index_ = target_layer;
 }
@@ -30,10 +34,11 @@ bool CellFinder::findTarget(const LifeCa& ca) {
   return false;
 }
 
-void CellFinder::update() {
+bool CellFinder::update() {
   if (!target_identified_) {
     findTarget(cas[target_layer_index_]);
   }
+  return false;
 }
 
 void CellDecay::clearTargetArea(LifeCa& ca) {
@@ -90,10 +95,10 @@ void CellDecay::reset() {
   decay_count_ = 0;
 }
 
-void CellDecay::update() {
+bool CellDecay::update() {
   CellFinder::update();
   if (!target_identified_) {
-    return;
+    return false;
   }
 
   int layer = 0;
@@ -110,10 +115,13 @@ void CellDecay::update() {
   if (mask_ & 0x1 << target_layer_index_) {
     if (++count_ == num_decay_death_ticks) {
       destroyTarget();
+      return true;
     }
   } else {
     target_identified_ = false;
   }
+
+  return false;
 }
 
 
@@ -142,7 +150,7 @@ void CellMutation::reset() {
   mutation_count_ = 0;
 }
 
-void CellMutation::update() {
+bool CellMutation::update() {
   if (random(avg_mutation_period) == 0) {
     mutate_ = true;
   }
@@ -153,6 +161,10 @@ void CellMutation::update() {
       mutateTarget();
       target_identified_ = false;
       mutate_ = false;
+
+      return true;
     }
   }
+
+  return false;
 }

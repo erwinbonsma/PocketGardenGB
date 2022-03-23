@@ -5,10 +5,6 @@
 
 #include "LifeCa.h"
 
-constexpr int max_cell_find_attempts = 32;
-constexpr int num_decay_death_ticks = 16;
-constexpr int avg_mutation_period = 512;
-
 struct GridPos {
   uint8_t x;
   uint8_t y;
@@ -30,7 +26,7 @@ protected:
 
   virtual bool findTarget(const LifeCa& ca);
 
-  virtual void update();
+  virtual bool update();
 };
 
 class CellDecay : public CellFinder {
@@ -48,7 +44,7 @@ public:
   uint8_t mask() const { return mask_; }
 
   void reset() override;
-  void update() override;
+  bool update() override;
 };
 
 class CellMutation : public CellFinder {
@@ -61,7 +57,7 @@ public:
   uint16_t mutationCount() const { return mutation_count_; }
 
   void reset() override;
-  void update() override;
+  bool update() override;
 };
 
 #endif
