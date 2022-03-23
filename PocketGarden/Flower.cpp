@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "Sfx.h"
 #include "Utils.h"
 
 constexpr int flower_grow_cycle = 90;
@@ -248,12 +249,16 @@ void Flower::update() {
     if (++grow_step_ == flower_grow_cycle) {
       grow_step_ = 0;
       ++cycle_;
+
+      gb.sound.fx(aliveSfx[colors_[
+        cycle_ % num_flower_colors
+      ]]);
     }
   }
 }
 
 void Flower::draw(int x, int y) {
-  // Only support aligned drawing on into uint16_t destination buffer
+  // Only support aligned drawing into uint16_t destination buffer
   assertTrue(x % 4 == 0);
 
   // Draw three layers
