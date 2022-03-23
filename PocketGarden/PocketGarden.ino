@@ -289,7 +289,7 @@ void gameOverUpdate() {
     }
   }
 
-  for (auto& flower : flowers) {
+  for (auto& flower : make_range(flowers, 0, 2)) {
     flower.update();
   }
 }

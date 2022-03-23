@@ -20,6 +20,24 @@ int countBits(int val);
 extern uint16_t expand[16];
 void init_expand();
 
+template <class Iter>
+class Range {
+  Iter b;
+  Iter e;
+public:
+  Range(Iter b, Iter e) : b(b), e(e) {}
+
+  Iter begin() { return b; }
+  Iter end() { return e; }
+};
+
+template <class Container>
+Range<typename Container::iterator>
+make_range(Container& c, int b, int e) {
+  return Range<typename Container::iterator> (c.begin() + b, c.begin() + e);
+}
+
+
 void assertFailed(const char *function, const char *file, int lineNo, const char *expression);
 
 #define assertTrue(condition) \
