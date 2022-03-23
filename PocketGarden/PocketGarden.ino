@@ -203,6 +203,29 @@ void titleUpdate() {
   }
 }
 
+void updateGarden() {
+  int layer = 0;
+  int history_index = num_steps % history_len;
+  int total_cells = 0;
+  for (auto& ca : cas) {
+    uint16_t cell_count = cell_count_history.numCells(layer);
+    if (cell_count) {
+      bool visible = view_mode >= num_ca_layers || layer == view_mode;
+
+      ca.step();
+      cell_decays[layer].update();
+      cell_mutations[layer].update();
+
+      if (liveliness_checks[layer].update(cell_count) && visible) {
+        gb.sound.fx(aliveSfx[layer]);
+      }
+    }
+
+    ++layer;
+  }
+  ++num_steps;
+}
+
 void gameUpdate() {
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     switch_view_mode(-1);
@@ -252,21 +275,7 @@ void gameUpdate() {
     }
   }
 
-  int layer = 0;
-  int history_index = num_steps % history_len;
-  int total_cells = 0;
-  for (auto& ca : cas) {
-    uint16_t cell_count = cell_count_history.numCells(layer);
-    if (cell_count) {
-      ca.step();
-      cell_decays[layer].update();
-      cell_mutations[layer].update();
-      liveliness_checks[layer].update(cell_count);
-    }
-
-    ++layer;
-  }
-  ++num_steps;
+  updateGarden();
 
   if (cell_count_history.countCells() == 0) {
     gameOver();

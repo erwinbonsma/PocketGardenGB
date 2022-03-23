@@ -13,7 +13,7 @@ public:
   void init(const Gamebuino_Meta::TuneSpec* sfx) { sfx_ = sfx; }
   void reset();
 
-  void update(uint16_t num_cells);
+  bool update(uint16_t num_cells);
 };
 
 #endif
