@@ -4,7 +4,7 @@
 
 constexpr int max_cell_find_attempts = 16;
 constexpr int num_decay_death_ticks = 16;
-constexpr int avg_mutation_period = 128;
+constexpr int avg_mutation_period = 512;
 
 void CellFinder::init(uint8_t target_layer) {
   target_layer_index_ = target_layer;
