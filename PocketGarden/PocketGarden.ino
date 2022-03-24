@@ -53,7 +53,7 @@ const MultiLang cooling_down_txt[1] = {
 };
 
 constexpr int32_t VMAJOR = 1;
-constexpr int32_t VMINOR = 0;
+constexpr int32_t VMINOR = 1;
 
 constexpr uint16_t SAVEINDEX_VMAJOR = 0;
 constexpr uint16_t SAVEINDEX_VMINOR = 1;
@@ -123,6 +123,9 @@ bool show_hi_score() {
 }
 
 void load_hi_scores() {
+  // Major version changes when storage format changes.
+  // Minor version changes when changes impact scoring.
+  // Either way, previously stored scores should be ignored.
   if (
     gb.save.get(SAVEINDEX_VMAJOR) != VMAJOR ||
     gb.save.get(SAVEINDEX_VMINOR) != VMINOR
