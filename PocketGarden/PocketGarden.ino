@@ -273,6 +273,14 @@ void gameUpdate() {
     }
   }
 
+  if (
+    gb.buttons.pressed(BUTTON_LEFT) || gb.buttons.pressed(BUTTON_RIGHT) ||
+    gb.buttons.pressed(BUTTON_UP) || gb.buttons.pressed(BUTTON_DOWN) ||
+    gb.buttons.pressed(BUTTON_A)
+  ) {
+    gb.gui.hidePopup();
+  }
+
   if (gb.frameCount % (1 << step_wait) != 0) return;
 
   if (target_step_wait != step_wait && gb.frameCount % 32 == 0) {
