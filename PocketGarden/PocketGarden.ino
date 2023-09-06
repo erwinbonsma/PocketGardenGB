@@ -11,10 +11,11 @@
 #include "Images.h"
 #include "LifeCa.h"
 #include "LivelinessCheck.h"
+#include "Music.h"
 #include "Sfx.h"
 #include "Utils.h"
 
-//#define DEVELOPMENT
+#define DEVELOPMENT
 
 // Color palette chosen such that blends of CA cells is somewhat logical.
 // - black is no cells, and white is all cells
@@ -220,10 +221,10 @@ void updateGarden() {
       ca.step();
 
       if (liveliness_checks[layer].update(cell_count) && visible) {
-        gb.sound.fx(aliveSfx[layer]);
+//        gb.sound.fx(aliveSfx[layer]);
       } else if (liveliness_checks[layer].liveliness() < 100) {
         if (cell_decays[layer].update() && visible) {
-          gb.sound.fx(decaySfx);
+//          gb.sound.fx(decaySfx);
         }
         cell_mutations[layer].update();
       }
@@ -263,7 +264,7 @@ void gameUpdate() {
       revive_cell_delta = cell_count_history.countCells() - cells_before;
       assertTrue(revive_cell_delta >= 0);
       if (!revive_cell_delta) {
-        gb.sound.fx(decaySfx);
+//        gb.sound.fx(decaySfx);
       }
 
       revive_cooldown = min_revive_wait;
@@ -517,6 +518,8 @@ void setup() {
   load_hi_scores();
 
   showTitle();
+
+  gb.sound.playSong(gardenOfLifeSong, true);
 }
 
 void loop() {
