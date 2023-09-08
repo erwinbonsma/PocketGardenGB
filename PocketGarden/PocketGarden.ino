@@ -104,7 +104,7 @@ uint32_t hi_score[2];
 constexpr int num_flowers = 14;
 std::array<Flower, num_flowers> flowers;
 
-CellCountHistory cell_count_history;
+std::array<CellCountHistory, num_ca_layers> cell_count_histories;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
 std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
@@ -147,15 +147,49 @@ void load_hi_scores() {
 }
 
 void switch_view_mode(int delta) {
-  bool skip_combined_view = cell_count_history.numEmptyLayers() >= num_ca_layers - 1;
+  bool skip_combined_view = numEmptyLayers() >= num_ca_layers - 1;
   do {
     view_mode = (view_mode + num_view_modes + delta) % num_view_modes;
   } while (
     // Skip empty layers
-    (view_mode < num_ca_layers && cell_count_history.numCells(view_mode) == 0)
+    (view_mode < num_ca_layers && cell_count_histories[view_mode].numCells() == 0)
     // Skip combined view when only one layer remains
     || (skip_combined_view && view_mode == num_ca_layers)
   );
+}
+
+int countCells() {
+  int total = 0;
+  int layer = 0;
+
+  for (auto& cch : cell_count_histories) {
+    total += cch.countCells(cas[layer]);
+    ++layer;
+  }
+
+  return total;
+}
+
+int totalCells() {
+  int total = 0;
+
+  for (auto& cch : cell_count_histories) {
+    total += cch.numCells();
+  }
+
+  return total;
+}
+
+int numEmptyLayers() {
+  int num_empty = 0;
+
+  for (auto& cch : cell_count_histories) {
+    if (cch.isEmpty()) {
+      ++num_empty;
+    }
+  }
+
+  return num_empty;
 }
 
 void gameOver(bool ignore_lo_score = false);
@@ -211,10 +245,9 @@ void titleUpdate() {
 
 void updateGarden() {
   int layer = 0;
-  int history_index = num_steps % history_len;
   int total_cells = 0;
   for (auto& ca : cas) {
-    uint16_t cell_count = cell_count_history.numCells(layer);
+    uint16_t cell_count = cell_count_histories[layer].numCells();
     if (cell_count) {
       bool visible = view_mode >= num_ca_layers || layer == view_mode;
 
@@ -256,12 +289,12 @@ void gameUpdate() {
 
   if (gb.buttons.pressed(BUTTON_A)) {
     if (!revive_cooldown) {
-      int cells_before = cell_count_history.totalCells();
+      int cells_before = totalCells();
 
       revive();
       ++num_revives;
 
-      revive_cell_delta = cell_count_history.countCells() - cells_before;
+      revive_cell_delta = countCells() - cells_before;
       assertTrue(revive_cell_delta >= 0);
       if (!revive_cell_delta) {
 //        gb.sound.fx(decaySfx);
@@ -294,7 +327,7 @@ void gameUpdate() {
 
   updateGarden();
 
-  if (cell_count_history.countCells() == 0) {
+  if (countCells() == 0) {
     gameOver();
   }
   if (revive_cooldown > 0) {
@@ -347,8 +380,8 @@ void gameDraw() {
   gb.display.clear();
   gb.lights.clear();
 
+  int layer = 0;
   if (view_mode <= num_ca_layers) {
-    int layer = 0;
     for (const auto& ca : cas) {
       if (view_mode == num_ca_layers || layer == view_mode) {
         ca.draw(layer);
@@ -356,7 +389,10 @@ void gameDraw() {
       ++layer;
     }
   } else {
-    cell_count_history.plot();
+    for (const auto& cch : cell_count_histories) {
+      cch.plot(layer);
+      ++layer;
+    }
   }
 
   showReviveCooldown();
@@ -368,7 +404,7 @@ void gameDraw() {
     gb.display.printf("%d/%d/%d/%d",
       cell_decays[view_mode].decayCount(),
       cell_mutations[view_mode].mutationCount(),
-      cell_count_history.numCells(view_mode),
+      cell_count_histories[view_mode].numCells(),
       liveliness_checks[view_mode].liveliness()
     );
   }
@@ -442,14 +478,13 @@ void startGame() {
 
   int layer = 0;
   for (auto& ca : cas) {
-    //ca.reset();
     ca.randomize();
+    cell_count_histories[layer].reset(ca);
     cell_decays[layer].reset();
     cell_mutations[layer].reset();
     liveliness_checks[layer].reset();
     ++layer;
   }
-  cell_count_history.reset();
 
   view_mode = 4;
   num_steps = 0;

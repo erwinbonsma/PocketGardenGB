@@ -4,17 +4,19 @@
 
 constexpr int history_len = W;
 
+class LifeCa;
+
 class CellCountHistory {
-  std::array<std::array<uint16_t, history_len>, num_ca_layers> cell_counts_;
+  std::array<uint16_t, history_len> cell_counts_;
   uint8_t last_entry_index_ = 0;
   bool wrapped_;
 
 public:
-  void reset();
-  int countCells();
-  int numEmptyLayers();
-  int totalCells();
-  void plot();
+  void reset(const LifeCa& ca);
+  int countCells(const LifeCa& ca);
 
-  uint16_t numCells(int layer) { return cell_counts_[layer][last_entry_index_]; }
+  bool isEmpty() const { return cell_counts_[last_entry_index_] == 0; }
+  void plot(int layer) const;
+
+  uint16_t numCells() { return cell_counts_[last_entry_index_]; }
 };

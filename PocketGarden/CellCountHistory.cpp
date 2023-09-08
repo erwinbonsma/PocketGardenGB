@@ -88,14 +88,14 @@ int CellCounter::countCells(const LifeCa& ca) const {
   return num_bits;
 }
 
-void CellCountHistory::reset() {
+void CellCountHistory::reset(const LifeCa& ca) {
   // Populate history with only current cell count
   last_entry_index_ = history_len - 1;
-  countCells();
+  countCells(ca);
   wrapped_ = false;
 }
 
-int CellCountHistory::countCells() {
+int CellCountHistory::countCells(const LifeCa& ca) {
   ++last_entry_index_;
   if (last_entry_index_ == history_len) {
     last_entry_index_ = 0;
@@ -103,54 +103,21 @@ int CellCountHistory::countCells() {
   }
   assertTrue(last_entry_index_ < history_len);
 
-  int total = 0;
-  int layer = 0;
-  for (auto& ca : cas) {
-    int cell_count = cell_counter.countCells(ca);
-    cell_counts_[layer][last_entry_index_] = cell_count;
-    total += cell_count;
-    ++layer;
-  }
+  int cell_count = cell_counter.countCells(ca);
+  cell_counts_[last_entry_index_] = cell_count;
 
-  return total;
+  return cell_count;
 }
 
-int CellCountHistory::totalCells() {
-  int total = 0;
-
-  for (int i = num_ca_layers; --i >= 0; ) {
-    total += cell_counts_[i][last_entry_index_];
-  }
-
-  return total;
-}
-
-int CellCountHistory::numEmptyLayers() {
-  int num_empty = 0;
-
-  for (int i = num_ca_layers; --i >= 0; ) {
-    if (cell_counts_[i][last_entry_index_] == 0) {
-      ++num_empty;
-    }
-  }
-
-  return num_empty;
-}
-
-
-void CellCountHistory::plot() {
+void CellCountHistory::plot(int layer) const {
   uint8_t* buf = reinterpret_cast<uint8_t*>(gb.display._buffer);
 
   int start_index = wrapped_ ? (last_entry_index_ + 1) % history_len : 0;
   int num_points = wrapped_ ? history_len : last_entry_index_ + 1;
 
-  for (int i = 0; i < num_ca_layers; ++i) {
-    const auto& history = cell_counts_[i];
-
-    for (int x = num_points; --x >= 0; ) {
-      int y = 63 - cellCountToY(history[(start_index + x) % history_len]);
-      int addr = (W / 2) * y + x / 2;
-      buf[addr] |= 0x1 << i + (x % 2 ? 0 : 4);
-    }
+  for (int x = num_points; --x >= 0; ) {
+    int y = 63 - cellCountToY(cell_counts_[(start_index + x) % history_len]);
+    int addr = (W / 2) * y + x / 2;
+    buf[addr] |= 0x1 << layer + (x % 2 ? 0 : 4);
   }
 }
