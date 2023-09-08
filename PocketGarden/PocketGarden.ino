@@ -243,29 +243,40 @@ void titleUpdate() {
   }
 }
 
-void updateGarden() {
-  int layer = 0;
-  int total_cells = 0;
-  for (auto& ca : cas) {
-    uint16_t cell_count = cell_count_histories[layer].numCells();
-    if (cell_count) {
-      bool visible = view_mode >= num_ca_layers || layer == view_mode;
+int nextActiveLayer() {
+  static int layer = 0;
+  int count = 0;
 
-      ca.step();
-
-      if (liveliness_checks[layer].update(cell_count) && visible) {
-//        gb.sound.fx(aliveSfx[layer]);
-      } else if (liveliness_checks[layer].liveliness() < 100) {
-        if (cell_decays[layer].update() && visible) {
-//          gb.sound.fx(decaySfx);
-        }
-        cell_mutations[layer].update();
-      }
+  do {
+    layer = (layer + 1) % num_ca_layers;
+    if (layer == 0) {
+      ++num_steps;
     }
+    ++count;
+  } while (cell_count_histories[layer].isEmpty() && count < num_ca_layers);
 
-    ++layer;
+  return layer;
+}
+
+bool updateGarden() {
+  int layer = nextActiveLayer();
+
+  bool visible = view_mode >= num_ca_layers || layer == view_mode;
+  auto &ca = cas[layer];
+  ca.step();
+
+  int cell_count = cell_count_histories[layer].countCells(ca);
+
+  if (liveliness_checks[layer].update(cell_count) && visible) {
+//    gb.sound.fx(aliveSfx[layer]);
+  } else if (liveliness_checks[layer].liveliness() < 100) {
+    if (cell_decays[layer].update() && visible) {
+//      gb.sound.fx(decaySfx);
+    }
+    cell_mutations[layer].update();
   }
-  ++num_steps;
+
+  return cell_count > 0;
 }
 
 void gameUpdate() {
@@ -325,11 +336,10 @@ void gameUpdate() {
     }
   }
 
-  updateGarden();
-
-  if (countCells() == 0) {
+  if (!updateGarden() && totalCells() == 0) {
     gameOver();
   }
+
   if (revive_cooldown > 0) {
     --revive_cooldown;
   }
