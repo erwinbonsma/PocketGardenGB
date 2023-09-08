@@ -156,6 +156,8 @@ void switch_view_mode(int delta) {
     // Skip combined view when only one layer remains
     || (skip_combined_view && view_mode == num_ca_layers)
   );
+
+  gb.display.clear();
 }
 
 int countCells() {
@@ -264,6 +266,10 @@ bool updateGarden() {
   bool visible = view_mode >= num_ca_layers || layer == view_mode;
   auto &ca = cas[layer];
   ca.step();
+
+  if (view_mode == num_ca_layers || layer == view_mode) {
+    ca.draw(layer);
+  }
 
   int cell_count = cell_count_histories[layer].countCells(ca);
 
@@ -387,18 +393,14 @@ void titleDraw() {
 }
 
 void gameDraw() {
-  gb.display.clear();
   gb.lights.clear();
 
-  int layer = 0;
-  if (view_mode <= num_ca_layers) {
-    for (const auto& ca : cas) {
-      if (view_mode == num_ca_layers || layer == view_mode) {
-        ca.draw(layer);
-      }
-      ++layer;
-    }
-  } else {
+  // Only draw the plot here. The CA display updates (for a
+  // particular layer) happen when the CA is updated.
+
+  if (view_mode > num_ca_layers) {
+    int layer = 0;
+    gb.display.clear();
     for (const auto& cch : cell_count_histories) {
       cch.plot(layer);
       ++layer;

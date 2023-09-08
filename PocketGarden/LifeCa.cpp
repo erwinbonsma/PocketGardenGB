@@ -137,6 +137,7 @@ void LifeCa::step() {
 void LifeCa::draw(int layer) const {
   uint16_t  *dst_p = gb.display._buffer;
   const uint32_t  *src_p = &data_[units_per_row_ca];
+  uint16_t  layer_mask = expand[15] << layer;
 
   for (int y = 0; y < ca_height; ++y) {
     int bits_remaining = ca_width;
@@ -155,7 +156,15 @@ void LifeCa::draw(int layer) const {
         rbpu = bits_per_unit_ca - (4 - rbpu);
       }
       bits_remaining -= 4;
-      *dst_p |= (expand[v] << layer);
+      uint16_t set_mask = expand[v] << layer;
+
+      // Set the display bits for the alive cells.
+      *dst_p |= set_mask;
+
+      // Do not assume that screen was empty. Explicitly clear the
+      // display bits for the empty cells.
+      *dst_p &= ~layer_mask | set_mask;
+
       ++dst_p;
     }
     ++src_p;
