@@ -14,8 +14,11 @@ class CellCountHistory {
   uint8_t last_entry_index_ = 0;
   bool wrapped_;
 
+  void addCount(int count);
+
 public:
   void reset(const LifeCa& ca);
+  void addZeroCount() { addCount(0); }
   int countCells(const LifeCa& ca);
 
   bool isEmpty() const { return cell_counts_[last_entry_index_] == 0; }

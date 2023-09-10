@@ -254,7 +254,7 @@ void titleUpdate() {
   }
 }
 
-int nextActiveLayer() {
+bool updateGardenLayer() {
   static int layer = 0;
   int count = 0;
 
@@ -263,16 +263,14 @@ int nextActiveLayer() {
     if (layer == 0) {
       ++num_steps;
     }
+
+    // Found a non-empty layer
+    if (!cell_count_histories[layer].isEmpty()) break;
+
+    cell_count_histories[layer].addZeroCount();
     ++count;
-  } while (cell_count_histories[layer].isEmpty() && count < num_ca_layers);
+  } while (count < num_ca_layers);
 
-  return layer;
-}
-
-bool updateGarden() {
-  int layer = nextActiveLayer();
-
-  bool visible = view_mode >= num_ca_layers || layer == view_mode;
   auto &ca = cas[layer];
   ca.step();
 
@@ -281,13 +279,11 @@ bool updateGarden() {
   }
 
   int cell_count = cell_count_histories[layer].countCells(ca);
-
-  if (liveliness_checks[layer].update(cell_count) && visible) {
-//    gb.sound.fx(aliveSfx[layer]);
-  } else if (liveliness_checks[layer].liveliness() < 100) {
-    if (cell_decays[layer].update() && visible) {
-//      gb.sound.fx(decaySfx);
-    }
+  if (
+    !liveliness_checks[layer].update(cell_count)
+    && liveliness_checks[layer].liveliness() < 100
+  ) {
+    cell_decays[layer].update();
     cell_mutations[layer].update();
   }
 
@@ -370,7 +366,7 @@ void gameUpdate() {
   bool all_updated_are_empty = true;
   int num_layers = std::max(0, speed - REF_SPEED) + 1;
   for (int i = num_layers; --i >= 0; ) {
-    if (updateGarden()) all_updated_are_empty = false;
+    if (updateGardenLayer()) all_updated_are_empty = false;
   }
 
   if (all_updated_are_empty && totalCells() == 0) {

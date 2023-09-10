@@ -99,7 +99,7 @@ void CellCountHistory::reset(const LifeCa& ca) {
   wrapped_ = false;
 }
 
-int CellCountHistory::countCells(const LifeCa& ca) {
+void CellCountHistory::addCount(int count) {
   ++last_entry_index_;
   if (last_entry_index_ == history_len) {
     last_entry_index_ = 0;
@@ -107,8 +107,12 @@ int CellCountHistory::countCells(const LifeCa& ca) {
   }
   assertTrue(last_entry_index_ < history_len);
 
+  cell_counts_[last_entry_index_] = count;
+}
+
+int CellCountHistory::countCells(const LifeCa& ca) {
   int cell_count = cell_counter.countCells(ca);
-  cell_counts_[last_entry_index_] = cell_count;
+  addCount(cell_count);
 
   return cell_count;
 }
