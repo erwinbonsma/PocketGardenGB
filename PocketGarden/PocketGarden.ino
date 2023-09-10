@@ -558,9 +558,9 @@ void gameOver(bool ignore_lo_score) {
   }
 
   if (improved_hi_score && show_hi_score()) {
-    gb.sound.playSong(levelHiSong);
+    gb.sound.fx(gameOverHiSfx);
   } else if (improved_lo_score && show_lo_score()) {
-    gb.sound.playSong(levelLoSong);
+    gb.sound.fx(gameOverLoSfx);
   } else {
     gb.sound.fx(gameOverSfx);
   }

@@ -81,62 +81,51 @@ const TuneSpec sfx5 = TuneSpec {
     .noteDuration = 24, .loopStart = 8, .numNotes = 8, .notes = sfx5Notes
 };
 
-// Level-hi
-const NoteSpec sfx6Notes[6] = {
+// Game Over + Hi-score
+const NoteSpec sfx6Notes[16] = {
+    NoteSpec { .note=Note::A4, .vol=7, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::G4, .vol=6, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=4, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    NoteSpec { .note=Note::E4, .vol=3, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    NoteSpec { .note=Note::E4, .vol=2, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    SILENCE,
+    SILENCE,
     NoteSpec { .note=Note::F4, .vol=4, .wav=WaveForm::TRIANGLE, .fx=Effect::NONE },
     NoteSpec { .note=Note::A4, .vol=5, .wav=WaveForm::TRIANGLE, .fx=Effect::NONE },
     NoteSpec { .note=Note::C5, .vol=6, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C5, .vol=6, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C5, .vol=5, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C5, .vol=4, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
+    SILENCE,
+    SILENCE,
 };
 const TuneSpec sfx6 = TuneSpec {
-    .noteDuration = 20, .loopStart = 6, .numNotes = 6, .notes = sfx6Notes
+    .noteDuration = 24, .loopStart = 16, .numNotes = 16, .notes = sfx6Notes
 };
 
-const NoteSpec sfx7Notes[6] = {
+// Game Over + Lo-score
+const NoteSpec sfx7Notes[16] = {
+    NoteSpec { .note=Note::A4, .vol=7, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::G4, .vol=6, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::PHASER, .fx=Effect::NONE },
+    NoteSpec { .note=Note::E4, .vol=4, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    NoteSpec { .note=Note::E4, .vol=3, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    NoteSpec { .note=Note::E4, .vol=2, .wav=WaveForm::PHASER, .fx=Effect::SLIDE },
+    SILENCE,
+    SILENCE,
     NoteSpec { .note=Note::F4, .vol=4, .wav=WaveForm::TRIANGLE, .fx=Effect::NONE },
     NoteSpec { .note=Note::E4, .vol=5, .wav=WaveForm::TRIANGLE, .fx=Effect::NONE },
     NoteSpec { .note=Note::C4, .vol=6, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C4, .vol=6, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C4, .vol=5, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
     NoteSpec { .note=Note::C4, .vol=4, .wav=WaveForm::TRIANGLE, .fx=Effect::VIBRATO },
+    SILENCE,
+    SILENCE,
 };
 const TuneSpec sfx7 = TuneSpec {
-    .noteDuration = 20, .loopStart = 6, .numNotes = 6, .notes = sfx7Notes
+    .noteDuration = 24, .loopStart = 16, .numNotes = 16, .notes = sfx7Notes
 };
-
-const TuneSpec *const pattern0Tunes[1] = { &sfx5 };
-const PatternSpec pattern0 = PatternSpec {
-    .numTunes = 1, .tunes = pattern0Tunes
-};
-const TuneSpec *const pattern1Tunes[1] = { &sfx6 };
-const PatternSpec pattern1 = PatternSpec {
-    .numTunes = 1, .tunes = pattern1Tunes
-};
-const TuneSpec *const pattern3Tunes[1] = { &sfx7 };
-const PatternSpec pattern3 = PatternSpec {
-    .numTunes = 1, .tunes = pattern3Tunes
-};
-
-// Game Over + Level Hi
-const PatternSpec *const song0Patterns[2] = {
-    &pattern0,
-    &pattern1,
-};
-const SongSpec song0 = SongSpec {
-    .loopStart = 1, .numPatterns = 2, .patterns = song0Patterns
-};
-
-// Game Over + Level Lo
-const PatternSpec *const song2Patterns[2] = {
-    &pattern0,
-    &pattern3,
-};
-const SongSpec song2 = SongSpec {
-    .loopStart = 1, .numPatterns = 2, .patterns = song2Patterns
-};
-
 
 }; // Namespace
 
@@ -148,5 +137,5 @@ const Gamebuino_Meta::TuneSpec* aliveSfx[4] = {
 
 const Gamebuino_Meta::TuneSpec* gameOverSfx = &Gamebuino_Meta::sfx5;
 
-const Gamebuino_Meta::SongSpec* levelHiSong = &Gamebuino_Meta::song0;
-const Gamebuino_Meta::SongSpec* levelLoSong = &Gamebuino_Meta::song2;
+const Gamebuino_Meta::TuneSpec* gameOverHiSfx = &Gamebuino_Meta::sfx6;
+const Gamebuino_Meta::TuneSpec* gameOverLoSfx = &Gamebuino_Meta::sfx7;

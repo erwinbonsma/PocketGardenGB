@@ -907,6 +907,7 @@ bool updateMusic() {
 
     ++layer;
   }
+  assertTrue(num_tunes > 0);
   Gamebuino_Meta::adaptivePatterns[pattern_to_update]->numTunes = num_tunes;
 
   pattern_to_update = 1 - pattern_to_update;
