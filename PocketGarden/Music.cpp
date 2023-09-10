@@ -881,13 +881,19 @@ void startMusic() {
   gb.sound.playSong(&Gamebuino_Meta::adaptiveSong, true);
 }
 
-bool updateMusic() {
-  if (
-    gb.sound.songPatternIndex() == pattern_to_update ||
-    gb.sound.ticksPlayedInSongPattern() < TICKS_LIMIT
-  ) {
-    return false;
-  }
+bool isMusicUpdateDue() {
+  return (
+    gb.sound.songPatternIndex() != pattern_to_update &&
+    gb.sound.ticksPlayedInSongPattern() >= TICKS_LIMIT
+  );
+}
+
+void resetMusic() {
+  pattern_to_update = (gb.sound.songPatternIndex() + 1) % 2;
+}
+
+void updateMusic() {
+  assertTrue(gb.sound.songPatternIndex() != pattern_to_update);
 
   int layer = 0;
   int num_tunes = 0;
@@ -911,6 +917,4 @@ bool updateMusic() {
   Gamebuino_Meta::adaptivePatterns[pattern_to_update]->numTunes = num_tunes;
 
   pattern_to_update = 1 - pattern_to_update;
-
-  return true;
 }

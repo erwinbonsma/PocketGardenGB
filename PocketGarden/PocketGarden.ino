@@ -308,7 +308,9 @@ void drawGarden() {
 void gameUpdate() {
   uint8_t orig_view_mode = view_mode;
 
-  updateMusic();
+  if (isMusicUpdateDue()) {
+    updateMusic();
+  }
 
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     switch_view_mode(-1);
@@ -381,7 +383,7 @@ void gameUpdate() {
 void gameOverUpdate() {
   ++num_steps;
 
-  if (num_steps == auto_play_wait) {
+  if (num_steps >= auto_play_wait && isMusicUpdateDue()) {
     startGame();
   }
 
@@ -533,6 +535,8 @@ void startGame() {
 
   speed = INI_SPEED;
   target_speed = MAX_SPEED;
+
+  resetMusic();
 }
 
 void gameOver(bool ignore_lo_score) {
