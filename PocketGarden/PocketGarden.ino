@@ -93,10 +93,10 @@ uint8_t view_mode;
 
 uint8_t target_speed;
 uint8_t speed;
-uint8_t revive_cooldown;
 
 uint32_t num_steps;
 uint32_t num_revives;
+uint32_t revive_step_limit;
 int revive_cell_delta;
 uint32_t score;
 
@@ -194,6 +194,7 @@ void displayCpuLoad() {
 
 // Use LEDs to indicate how successful a revive was, and that next revive cannot yet be started
 void showReviveCooldown() {
+  int revive_cooldown = revive_step_limit > num_steps ? revive_step_limit - num_steps : 0;
   int num_leds = (revive_cooldown + lights_revive_ticks_bin_size - 1) / lights_revive_ticks_bin_size;
 
   int num_green_leds = (revive_cell_delta + lights_revive_cells_bin_size - 1) / lights_revive_cells_bin_size;
@@ -331,10 +332,10 @@ void gameUpdate() {
   }
 
   if (gb.buttons.pressed(BUTTON_A)) {
-    if (!revive_cooldown) {
+    if (num_steps > revive_step_limit) {
       revive();
       ++num_revives;
-      revive_cooldown = min_revive_wait;
+      revive_step_limit = num_steps + min_revive_wait;
 
       // Exit here to skip CA update (to reduce CPU load)
       return;
@@ -373,10 +374,6 @@ void gameUpdate() {
 
   if (all_updated_are_empty && totalCells() == 0) {
     gameOver();
-  }
-
-  if (revive_cooldown > 0) {
-    --revive_cooldown;
   }
 }
 
@@ -532,6 +529,7 @@ void startGame() {
   view_mode = 4;
   num_steps = 0;
   num_revives = 0;
+  revive_step_limit = 0;
 
   speed = INI_SPEED;
   target_speed = MAX_SPEED;

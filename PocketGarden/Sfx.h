@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Gamebuino-Meta.h>
+#undef min
+#undef max
 
 extern const Gamebuino_Meta::TuneSpec* decaySfx;
 
