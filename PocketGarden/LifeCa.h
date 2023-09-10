@@ -59,8 +59,7 @@ private:
 
 };
 
-typedef std::array<LifeCa, num_ca_layers> LifeCaLayers;
-
-extern LifeCaLayers cas;
+constexpr int num_ca_layers = 4;
+extern std::array<LifeCa, num_ca_layers> cas;
 
 #endif

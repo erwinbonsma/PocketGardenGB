@@ -1,3 +1,4 @@
-#include <Gamebuino-Meta.h>
+#pragma once
 
-extern const Gamebuino_Meta::SongSpec* gardenOfLifeSong;
+void startMusic();
+bool updateMusic();

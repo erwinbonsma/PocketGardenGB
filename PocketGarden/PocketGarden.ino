@@ -108,10 +108,8 @@ uint32_t hi_score[2];
 constexpr int num_flowers = 14;
 std::array<Flower, num_flowers> flowers;
 
-std::array<CellCountHistory, num_ca_layers> cell_count_histories;
 std::array<CellDecay, num_ca_layers> cell_decays;
 std::array<CellMutation, num_ca_layers> cell_mutations;
-std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
 
 bool show_lo_score() {
   bool auto_play = num_revives == 0;
@@ -314,6 +312,8 @@ void drawGarden() {
 void gameUpdate() {
   uint8_t orig_view_mode = view_mode;
 
+  updateMusic();
+
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     switch_view_mode(-1);
   }
@@ -442,6 +442,8 @@ void gameDraw() {
 
 #ifdef DEVELOPMENT
   if (view_mode < num_ca_layers) {
+    gb.display.setColor(INDEX_BLACK);
+    gb.display.fillRect(0, 0, 48, 7);
     gb.display.setColor(INDEX_WHITE);
     gb.display.setCursor(1, 1);
     gb.display.printf("%d/%d/%d/%d",
@@ -597,7 +599,7 @@ void setup() {
 
   showTitle();
 
-  gb.sound.playSong(gardenOfLifeSong, true);
+  startMusic();
 }
 
 void loop() {

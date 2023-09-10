@@ -4,8 +4,6 @@
 #undef min
 #undef max
 
-#include <array>
-
 #include "LifeCa.h"
 
 class CellCounter {
@@ -35,6 +33,8 @@ constexpr int num_bits_last_unit = ca_width % bits_per_unit_ca + 1;
 constexpr uint32_t mask_r = mask_c & ((uint32_t)~0x0) >> (bits_per_unit - num_bits_last_unit);
 
 CellCounter cell_counter;
+
+std::array<CellCountHistory, num_ca_layers> cell_count_histories;
 
 int cellCountToY(int cellCount) {
   int y = (y_lookup[32] <= cellCount) ? 32 : 0;

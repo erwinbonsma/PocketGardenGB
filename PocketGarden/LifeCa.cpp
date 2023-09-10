@@ -1,7 +1,5 @@
 #include "LifeCa.h"
 
-LifeCaLayers cas;
-
 constexpr uint32_t bits_in_last_ca_unit = ca_width % bits_per_unit_ca + 1;
 
 // Masks with valid bits
@@ -19,6 +17,8 @@ constexpr uint8_t bit_pos_r_dst = ca_width % bits_per_unit_ca + 1;
 constexpr uint8_t bit_pos_r_src = bit_pos_r_dst - 1;
 
 uint32_t rows[3 * units_per_row_ca];
+
+std::array<LifeCa, num_ca_layers> cas;
 
 LifeCa::LifeCa()
 : bit_grid_(data_, ca_unit_width * bits_per_unit, ca_unit_height) {

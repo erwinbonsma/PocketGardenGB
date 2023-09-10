@@ -1,9 +1,8 @@
-#ifndef LIVELINESSCHECK_H
-#define LIVELINESSCHECK_H
+#pragma once
 
 #include <Gamebuino-Meta.h>
-#undef min
-#undef max
+
+#include "LifeCa.h"
 
 class LivelinessCheck {
   const Gamebuino_Meta::TuneSpec* sfx_;
@@ -19,4 +18,4 @@ public:
   bool update(uint16_t num_cells);
 };
 
-#endif
+extern std::array<LivelinessCheck, num_ca_layers> liveliness_checks;

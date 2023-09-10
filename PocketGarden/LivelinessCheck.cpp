@@ -15,6 +15,8 @@ constexpr uint16_t liveliness_inc = 0x1 << liveliness_inc_exp;
 constexpr int liveliness_max_exp = 9;
 constexpr uint16_t liveliness_max = 0x1 << liveliness_max_exp;
 
+std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
+
 void LivelinessCheck::reset() {
   min_cells_ = W * H;
 }
@@ -30,8 +32,10 @@ bool LivelinessCheck::update(uint16_t num_cells) {
     ) >> (liveliness_max_exp - liveliness_inc_exp);
 
     return true;
-  } else if (liveliness_ > 0) {
-    --liveliness_;
+  } else if (num_cells > 0) {
+    liveliness_ = std::max(1, liveliness_ - 1);
+  } else {
+    liveliness_ = 0;
   }
 
   return false;

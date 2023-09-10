@@ -1,6 +1,9 @@
+#pragma once
+
 #include <array>
 
 #include "Utils.h"
+#include "LifeCa.h"
 
 constexpr int history_len = W;
 
@@ -22,3 +25,5 @@ public:
 };
 
 int countCells(const LifeCa& ca);
+
+extern std::array<CellCountHistory, num_ca_layers> cell_count_histories;
