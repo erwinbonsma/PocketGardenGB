@@ -64,7 +64,7 @@ constexpr uint16_t SAVEINDEX_HISCORE = 3;
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-constexpr int MAX_SPEED = 6;
+constexpr int MAX_SPEED = SOUND_FREQ == 11025 ? 8 : 6;
 constexpr int INI_SPEED = 1;
 // Speed at which each frame one CA layer is updated
 constexpr int REF_SPEED = 5;
