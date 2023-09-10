@@ -64,8 +64,11 @@ constexpr uint16_t SAVEINDEX_HISCORE = 3;
 UpdateFunction updateFunction;
 DrawFunction drawFunction;
 
-constexpr int max_step_wait = 6;
-constexpr int ini_step_wait = 5;
+constexpr int MAX_SPEED = 6;
+constexpr int INI_SPEED = 1;
+// Speed at which each frame one CA layer is updated
+constexpr int REF_SPEED = 5;
+
 constexpr int num_view_modes = 6;
 
 // How many frames to ignore key press after screen switch
@@ -87,8 +90,8 @@ constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
 constexpr int lights_revive_cells_bin_size = 256 / 8;
 
 uint8_t view_mode;
-uint8_t target_step_wait;
-uint8_t step_wait;
+uint8_t target_speed;
+uint8_t speed;
 uint8_t revive_cooldown;
 
 uint32_t num_steps;
@@ -201,7 +204,7 @@ void displayCpuLoad() {
   uint8_t cpu_load = gb.getCpuLoad();
   gb.display.setColor(cpu_load < 80 ? Color::green : (cpu_load < 100 ? Color::yellow : Color::red));
   gb.display.setCursor(1, 58);
-  gb.display.printf("%d", cpu_load);
+  gb.display.printf("%d/%d/%d", cpu_load, speed, target_speed);
 }
 
 // Use LEDs to indicate how successful a revive was, and that next revive cannot yet be started
@@ -293,10 +296,10 @@ void gameUpdate() {
     switch_view_mode(1);
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
-    target_step_wait = std::max(target_step_wait - 1, 0);
+    target_speed = std::min(target_speed + 1, MAX_SPEED);
   }
   if (gb.buttons.pressed(BUTTON_DOWN)) {
-    target_step_wait = std::min(target_step_wait + 1, max_step_wait);
+    target_speed = std::max(target_speed - 1, 0);
   }
   if (gb.buttons.pressed(BUTTON_B)) {
     gb.gui.popup(exit_hint_txt, popup_duration);
@@ -332,17 +335,23 @@ void gameUpdate() {
     gb.gui.hidePopup();
   }
 
-  if (gb.frameCount % (1 << step_wait) != 0) return;
+  if (gb.frameCount % (1 << std::max(0, REF_SPEED - speed)) != 0) return;
 
-  if (target_step_wait != step_wait && gb.frameCount % 32 == 0) {
-    if (step_wait < target_step_wait) {
-      ++step_wait;
+  if (target_speed != speed && gb.frameCount % 32 == 0) {
+    if (speed < target_speed) {
+      ++speed;
     } else {
-      --step_wait;
+      --speed;
     }
   }
 
-  if (!updateGarden() && totalCells() == 0) {
+  bool all_updated_are_empty = true;
+  int num_layers = std::max(0, speed - REF_SPEED) + 1;
+  for (int i = num_layers; --i >= 0; ) {
+    if (updateGarden()) all_updated_are_empty = false;
+  }
+
+  if (all_updated_are_empty && totalCells() == 0) {
     gameOver();
   }
 
@@ -501,7 +510,9 @@ void startGame() {
   view_mode = 4;
   num_steps = 0;
   num_revives = 0;
-  step_wait = ini_step_wait;
+
+  speed = INI_SPEED;
+  target_speed = MAX_SPEED;
 }
 
 void gameOver(bool ignore_lo_score) {
@@ -549,8 +560,6 @@ void setup() {
   gb.display.setPalette(caColorPalette);
 
   init_expand();
-
-  target_step_wait = 0;
 
   for (int i = 0; i < num_ca_layers; ++i) {
     cell_decays[i].init(i);
