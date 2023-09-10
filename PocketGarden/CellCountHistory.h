@@ -20,3 +20,5 @@ public:
 
   uint16_t numCells() { return cell_counts_[last_entry_index_]; }
 };
+
+int countCells(const LifeCa& ca);

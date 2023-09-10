@@ -162,18 +162,6 @@ void switch_view_mode(int delta) {
   );
 }
 
-int countCells() {
-  int total = 0;
-  int layer = 0;
-
-  for (auto& cch : cell_count_histories) {
-    total += cch.countCells(cas[layer]);
-    ++layer;
-  }
-
-  return total;
-}
-
 int totalCells() {
   int total = 0;
 
@@ -223,8 +211,7 @@ void revive() {
   std::array<uint32_t*, num_ca_layers> ps;
   int layer = 0;
   for (auto& ca : cas) {
-    ps[layer] = &ca.data_[units_per_row_ca];
-    ++layer;
+    ps[layer++] = &ca.data_[units_per_row_ca];
   }
 
   // Iterate over grid
@@ -234,6 +221,28 @@ void revive() {
       *p |= mask;
       ++p;
     }
+  }
+
+  // Find most improved layer
+  int best_delta = 0;
+  int best_layer = 0;
+  layer = 0;
+  revive_cell_delta = 0;
+  for (auto& ca : cas) {
+    int delta = countCells(ca) - cell_count_histories[layer].numCells();
+    revive_cell_delta += delta;
+    if (delta > best_delta) {
+      best_delta = delta;
+      best_layer = layer;
+    }
+
+    ++layer;
+  }
+
+  if (best_delta == 0) {
+    gb.sound.fx(decaySfx);
+  } else {
+    gb.sound.fx(aliveSfx[best_layer]);
   }
 }
 
@@ -325,17 +334,8 @@ void gameUpdate() {
 
   if (gb.buttons.pressed(BUTTON_A)) {
     if (!revive_cooldown) {
-      int cells_before = totalCells();
-
       revive();
       ++num_revives;
-
-      revive_cell_delta = countCells() - cells_before;
-      assertTrue(revive_cell_delta >= 0);
-      if (!revive_cell_delta) {
-//        gb.sound.fx(decaySfx);
-      }
-
       revive_cooldown = min_revive_wait;
 
       // Exit here to skip CA update (to reduce CPU load)

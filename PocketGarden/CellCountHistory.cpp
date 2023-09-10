@@ -48,6 +48,10 @@ int cellCountToY(int cellCount) {
   return y;
 }
 
+int countCells(const LifeCa& ca) {
+  return cell_counter.countCells(ca);
+}
+
 CellCounter::CellCounter() {
   for (int i = 0; i < 256; ++i) {
     lookup_[i] = countBits(i);
