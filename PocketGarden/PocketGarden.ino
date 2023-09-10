@@ -90,6 +90,7 @@ constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
 constexpr int lights_revive_cells_bin_size = 256 / 8;
 
 uint8_t view_mode;
+
 uint8_t target_speed;
 uint8_t speed;
 uint8_t revive_cooldown;
@@ -159,8 +160,6 @@ void switch_view_mode(int delta) {
     // Skip combined view when only one layer remains
     || (skip_combined_view && view_mode == num_ca_layers)
   );
-
-  gb.display.clear();
 }
 
 int countCells() {
@@ -288,7 +287,24 @@ bool updateGarden() {
   return cell_count > 0;
 }
 
+// Draws garden as it is. It is typically invoked after a view mode change
+// Normally the screen is incrementally redrawn (only for the layer that was
+// updated).
+void drawGarden() {
+  if (view_mode < num_ca_layers) {
+    gb.display.clear();
+    cas[view_mode].draw(view_mode);
+  } else if (view_mode == num_ca_layers) {
+    int layer = 0;
+    for (auto& ca: cas) {
+      ca.draw(layer++);
+    }
+  }
+}
+
 void gameUpdate() {
+  uint8_t orig_view_mode = view_mode;
+
   if (gb.buttons.pressed(BUTTON_LEFT)) {
     switch_view_mode(-1);
   }
@@ -333,6 +349,12 @@ void gameUpdate() {
     gb.buttons.pressed(BUTTON_A)
   ) {
     gb.gui.hidePopup();
+  }
+
+  if (view_mode != orig_view_mode) {
+    // Immediately redraw screen
+    drawGarden();
+    return;
   }
 
   if (gb.frameCount % (1 << std::max(0, REF_SPEED - speed)) != 0) return;
