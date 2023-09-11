@@ -228,7 +228,9 @@ void revive() {
   layer = 0;
   revive_cell_delta = 0;
   for (auto& ca : cas) {
-    int delta = countCells(ca) - cell_count_histories[layer].numCells();
+    auto& cch = cell_count_histories[layer];
+    int before = cch.numCells();
+    int delta = cch.countCells(ca) - before;
     revive_cell_delta += delta;
     if (delta > best_delta) {
       best_delta = delta;
