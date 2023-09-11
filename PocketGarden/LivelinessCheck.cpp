@@ -3,17 +3,17 @@
 #include "Utils.h"
 
 // The cell growth (in number of cells) to trigger a liveliness increase
-constexpr int liveliness_delta = 50;
+constexpr int LIVELINESS_DELTA = 50;
 
 // The maximum liveliness increase
-constexpr int liveliness_inc_exp = 6;
-constexpr uint16_t liveliness_inc = 0x1 << liveliness_inc_exp;
+constexpr int LIVELINESS_INC_EXP = 6;
+constexpr uint16_t LIVELINESS_INC = 0x1 << LIVELINESS_INC_EXP;
 
 // The maximum liveliness level
-constexpr int liveliness_max_exp = 9;
-constexpr uint16_t liveliness_max = 0x1 << liveliness_max_exp;
+constexpr int LIVELINESS_MAX_EXP = 9;
+constexpr uint16_t LIVELINESS_MAX = 0x1 << LIVELINESS_MAX_EXP;
 
-std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
+std::array<LivelinessCheck, NUM_CA_LAYERS> liveliness_checks;
 
 void LivelinessCheck::reset() {
   min_cells_ = W * H;
@@ -22,12 +22,12 @@ void LivelinessCheck::reset() {
 bool LivelinessCheck::update(uint16_t num_cells) {
   min_cells_ = std::min(min_cells_, num_cells);
 
-  if (num_cells > min_cells_ + liveliness_delta) {
-    min_cells_ += liveliness_delta;
+  if (num_cells > min_cells_ + LIVELINESS_DELTA) {
+    min_cells_ += LIVELINESS_DELTA;
 
     liveliness_ += (
-      (liveliness_max - std::min(liveliness_, liveliness_max))
-    ) >> (liveliness_max_exp - liveliness_inc_exp);
+      (LIVELINESS_MAX - std::min(liveliness_, LIVELINESS_MAX))
+    ) >> (LIVELINESS_MAX_EXP - LIVELINESS_INC_EXP);
 
     return true;
   } else if (num_cells > 0) {

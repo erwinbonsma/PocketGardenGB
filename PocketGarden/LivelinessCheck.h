@@ -20,4 +20,4 @@ public:
   bool update(uint16_t num_cells);
 };
 
-extern std::array<LivelinessCheck, num_ca_layers> liveliness_checks;
+extern std::array<LivelinessCheck, NUM_CA_LAYERS> liveliness_checks;

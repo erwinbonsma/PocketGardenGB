@@ -4,12 +4,12 @@
 
 #include "LifeCa.h"
 
-constexpr int history_len = W;
+constexpr int HISTORY_LEN = W;
 
 class LifeCa;
 
 class CellCountHistory {
-  std::array<uint16_t, history_len> cell_counts_;
+  std::array<uint16_t, HISTORY_LEN> cell_counts_;
   uint8_t last_entry_index_ = 0;
   bool wrapped_;
 
@@ -28,4 +28,4 @@ public:
 
 int countCells(const LifeCa& ca);
 
-extern std::array<CellCountHistory, num_ca_layers> cell_count_histories;
+extern std::array<CellCountHistory, NUM_CA_LAYERS> cell_count_histories;

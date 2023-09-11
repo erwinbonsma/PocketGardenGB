@@ -17,7 +17,7 @@ int countBits(int val) {
 
 uint16_t expand[16];
 
-void init_expand() {
+void initExpand() {
   for (int i = 0; i < 16; ++i) {
     uint16_t x = i;
     x = (x | x <<  6) & 0x0303;

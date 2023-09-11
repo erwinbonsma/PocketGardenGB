@@ -9,13 +9,13 @@
 #include "Sfx.h"
 #include "Utils.h"
 
-constexpr int flower_grow_cycle = 90;
+constexpr int FLOWER_GROW_CYCLE = 90;
 
 // The expand table is based on the strange bit-ordering used by the CA.
 // The table below reverses the 4-bit nibbles. The table could be avoided
-// by redefining the flowerData array, but that makes it harder to update
+// by redefining the FLOWER_DATA array, but that makes it harder to update
 // or modify it.
-const uint8_t reverse_nibble[] = {
+const uint8_t REVERSE_NIBBLE[] = {
   0x0, // 0x0 0000 - 0000
   0x8, // 0x1 0001 - 1000
   0x4, // 0x2 0010 - 0100
@@ -36,7 +36,7 @@ const uint8_t reverse_nibble[] = {
 
 // Flower definitions.
 // There are 11 flowers, each of size 16x16 1-bit pixels
-const uint8_t flowerData[] = {
+const uint8_t FLOWER_DATA[] = {
   // Flower 0
   0x00, 0x00,
   0x00, 0x00,
@@ -243,19 +243,19 @@ void populate(uint8_t* buf, int len) {
 
 void Flower::init() {
   cycle_ = 0;
-  grow_step_ = random(flower_grow_cycle);
-  populate(colors_, num_flower_colors);
-  populate(sprites_, num_flower_frames);
+  grow_step_ = random(FLOWER_GROW_CYCLE);
+  populate(colors_, NUM_FLOWER_COLORS);
+  populate(sprites_, NUM_FLOWER_FRAMES);
 }
 
 void Flower::update() {
   if (random(256) < 128) {
-    if (++grow_step_ == flower_grow_cycle) {
+    if (++grow_step_ == FLOWER_GROW_CYCLE) {
       grow_step_ = 0;
       ++cycle_;
 
       gb.sound.fx(aliveSfx[colors_[
-        cycle_ % num_flower_colors
+        cycle_ % NUM_FLOWER_COLORS
       ]]);
     }
   }
@@ -267,22 +267,22 @@ void Flower::draw(int x, int y) {
 
   // Draw three layers
   for (int i = std::min(3, (int)cycle_); --i >= 0; ) {
-    int sprite_index = sprites_[(cycle_ - i) % num_flower_frames];
-    int color_shift = colors_[(cycle_ - i) % num_flower_colors];
+    int sprite_index = sprites_[(cycle_ - i) % NUM_FLOWER_FRAMES];
+    int color_shift = colors_[(cycle_ - i) % NUM_FLOWER_COLORS];
 
-    const uint8_t *src_p = &flowerData[sprite_index * 32];
+    const uint8_t *src_p = &FLOWER_DATA[sprite_index * 32];
     uint16_t *dst_p = &gb.display._buffer[(W * y + x) / 4];
     const uint8_t *end_p = src_p + 32;
     while (src_p < end_p) {
-      *dst_p |= expand[reverse_nibble[*src_p >> 4 & 0xf]] << color_shift;
+      *dst_p |= expand[REVERSE_NIBBLE[*src_p >> 4 & 0xf]] << color_shift;
       dst_p += 1;
-      *dst_p |= expand[reverse_nibble[*src_p >> 0 & 0xf]] << color_shift;
+      *dst_p |= expand[REVERSE_NIBBLE[*src_p >> 0 & 0xf]] << color_shift;
       dst_p += 1;
       src_p += 1;
 
-      *dst_p |= expand[reverse_nibble[*src_p >> 4 & 0xf]] << color_shift;
+      *dst_p |= expand[REVERSE_NIBBLE[*src_p >> 4 & 0xf]] << color_shift;
       dst_p += 1;
-      *dst_p |= expand[reverse_nibble[*src_p >> 0 & 0xf]] << color_shift;
+      *dst_p |= expand[REVERSE_NIBBLE[*src_p >> 0 & 0xf]] << color_shift;
       dst_p += W / 4 - 3;
       src_p += 1;
     }

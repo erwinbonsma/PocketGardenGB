@@ -4,9 +4,9 @@
 
 #include "Utils.h"
 
-constexpr int max_cell_find_attempts = 16;
-constexpr int num_decay_death_ticks = 16;
-constexpr int avg_mutation_period = 512;
+constexpr int MAX_CELL_FIND_ATTEMPTS = 16;
+constexpr int NUM_DECAY_DEATH_TICKS = 16;
+constexpr int AVG_MUTATION_PERIOD = 512;
 
 void CellFinder::init(uint8_t target_layer) {
   target_layer_index_ = target_layer;
@@ -17,7 +17,7 @@ void CellFinder::reset() {
 }
 
 bool CellFinder::findTarget(const LifeCa& ca) {
-  int num_attempts = max_cell_find_attempts;
+  int num_attempts = MAX_CELL_FIND_ATTEMPTS;
 
   while (num_attempts >= 0) {
     int x = random(W);
@@ -47,8 +47,8 @@ void CellDecay::clearTargetArea(LifeCa& ca) {
   for (int dx = -1; dx <= 1; ++dx) {
     for (int dy = -1; dy <= 1; ++dy) {
       ca.clear(
-        (target_pos_.x + dx + ca_width) % ca_width,
-        (target_pos_.y + dy + ca_height) % ca_height
+        (target_pos_.x + dx + CA_WIDTH) % CA_WIDTH,
+        (target_pos_.y + dy + CA_HEIGHT) % CA_HEIGHT
       );
     }
   }
@@ -115,7 +115,7 @@ bool CellDecay::update() {
   }
 
   if (mask_ & 0x1 << target_layer_index_) {
-    if (++count_ == num_decay_death_ticks) {
+    if (++count_ == NUM_DECAY_DEATH_TICKS) {
       destroyTarget();
       return true;
     }
@@ -134,8 +134,8 @@ void CellMutation::mutateTarget() {
     int dir = (i + offset) % 4;
     int dx = 2 * (dir % 2) - 1;
     int dy = 2 * (dir / 2) - 1;
-    int x = (target_pos_.x + dx + ca_width) % ca_width;
-    int y = (target_pos_.y + dy + ca_height) % ca_height;
+    int x = (target_pos_.x + dx + CA_WIDTH) % CA_WIDTH;
+    int y = (target_pos_.y + dy + CA_HEIGHT) % CA_HEIGHT;
 
     if (!ca.get(x, y)) {
       ca.set(x, y);
@@ -153,7 +153,7 @@ void CellMutation::reset() {
 }
 
 bool CellMutation::update() {
-  if (random(avg_mutation_period) == 0) {
+  if (random(AVG_MUTATION_PERIOD) == 0) {
     mutate_ = true;
   }
 

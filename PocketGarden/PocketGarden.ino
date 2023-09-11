@@ -26,7 +26,7 @@
 // - Mixing three colors:
 //   - Results in four bright colors
 //   - The resulting color is a lighter variant of the blend of two of the three colors
-const Color caColorPalette[16] = {
+const Color CA_COLOR_PALETTE[16] = {
   Color::black,
   Color::darkblue,     //  1: Layer 1
   Color::purple,       //  2: Layer 2
@@ -45,12 +45,9 @@ const Color caColorPalette[16] = {
   Color::white,
 };
 
-constexpr int num_ui_languages = 1;
-const MultiLang exit_hint_txt[1] = {
+constexpr int NUM_UI_LANGUAGES = 1;
+const MultiLang exit_hint_txt[NUM_UI_LANGUAGES] = {
   {LANG_EN, "Hold B to exit"},
-};
-const MultiLang cooling_down_txt[1] = {
-  {LANG_EN, "Cannot revive yet"},
 };
 
 constexpr int32_t VMAJOR = 1;
@@ -61,33 +58,33 @@ constexpr uint16_t SAVEINDEX_VMINOR = 1;
 constexpr uint16_t SAVEINDEX_LOSCORE = 2;
 constexpr uint16_t SAVEINDEX_HISCORE = 3;
 
-UpdateFunction updateFunction;
-DrawFunction drawFunction;
+UpdateFunction update_function;
+DrawFunction draw_function;
 
 constexpr int MAX_SPEED = SOUND_FREQ == 11025 ? 8 : 6;
 constexpr int INI_SPEED = 1;
 // Speed at which each frame one CA layer is updated
 constexpr int REF_SPEED = 5;
 
-constexpr int num_view_modes = 6;
+constexpr int NUM_VIEW_MODES = 6;
 
 // How many frames to ignore key press after screen switch
-constexpr int ignore_keys_wait = 2 * 30;
+constexpr int IGNORE_KEYS_WAIT = 2 * 30;
 
 // How many frames to wait before starting a new game
-constexpr int auto_play_wait = 15 * 30;
+constexpr int AUTO_PLAY_WAIT = 15 * 30;
 
 // How many frames to press A key to prematurely exit game
-constexpr int exit_press_limit = 30;
+constexpr int EXIT_PRESS_LIMIT = 30;
 
 // The number of frames popups are shown
 constexpr int popup_duration = 60;
 
 // How many steps to wait until revive is allowed again
-constexpr int min_revive_wait = 32;
+constexpr int MIN_REVIVE_WAIT = 32;
 
-constexpr int lights_revive_ticks_bin_size = min_revive_wait / 8;
-constexpr int lights_revive_cells_bin_size = 256 / 8;
+constexpr int LIGHTS_REVIVE_TICKS_BIN_SIZE = MIN_REVIVE_WAIT / 8;
+constexpr int LIGHTS_REVIVE_CELLS_BIN_SIZE = 256 / 8;
 
 uint8_t view_mode;
 
@@ -105,13 +102,13 @@ int32_t lo_score = std::numeric_limits<int32_t>::max();
 // Separate hi-score for auto-play (num_revives == 0) and interactive game
 uint32_t hi_score[2];
 
-constexpr int num_flowers = 14;
-std::array<Flower, num_flowers> flowers;
+constexpr int NUM_FLOWERS = 14;
+std::array<Flower, NUM_FLOWERS> flowers;
 
-std::array<CellDecay, num_ca_layers> cell_decays;
-std::array<CellMutation, num_ca_layers> cell_mutations;
+std::array<CellDecay, NUM_CA_LAYERS> cell_decays;
+std::array<CellMutation, NUM_CA_LAYERS> cell_mutations;
 
-bool show_lo_score() {
+bool showLoScore() {
   bool auto_play = num_revives == 0;
   return (
     auto_play
@@ -120,12 +117,12 @@ bool show_lo_score() {
   );
 }
 
-bool show_hi_score() {
+bool showHiScore() {
   bool auto_play = num_revives == 0;
   return !auto_play || hi_score[auto_play] != lo_score;
 }
 
-void load_hi_scores() {
+void loadHiScores() {
   // Major version changes when storage format changes.
   // Minor version changes when changes impact scoring.
   // Either way, previously stored scores should be ignored.
@@ -148,15 +145,15 @@ void load_hi_scores() {
   }
 }
 
-void switch_view_mode(int delta) {
-  bool skip_combined_view = numEmptyLayers() >= num_ca_layers - 1;
+void switchViewMode(int delta) {
+  bool skip_combined_view = numEmptyLayers() >= NUM_CA_LAYERS - 1;
   do {
-    view_mode = (view_mode + num_view_modes + delta) % num_view_modes;
+    view_mode = (view_mode + NUM_VIEW_MODES + delta) % NUM_VIEW_MODES;
   } while (
     // Skip empty layers
-    (view_mode < num_ca_layers && cell_count_histories[view_mode].numCells() == 0)
+    (view_mode < NUM_CA_LAYERS && cell_count_histories[view_mode].numCells() == 0)
     // Skip combined view when only one layer remains
-    || (skip_combined_view && view_mode == num_ca_layers)
+    || (skip_combined_view && view_mode == NUM_CA_LAYERS)
   );
 }
 
@@ -195,9 +192,9 @@ void displayCpuLoad() {
 // Use LEDs to indicate how successful a revive was, and that next revive cannot yet be started
 void showReviveCooldown() {
   int revive_cooldown = revive_step_limit > num_steps ? revive_step_limit - num_steps : 0;
-  int num_leds = (revive_cooldown + lights_revive_ticks_bin_size - 1) / lights_revive_ticks_bin_size;
+  int num_leds = (revive_cooldown + LIGHTS_REVIVE_TICKS_BIN_SIZE - 1) / LIGHTS_REVIVE_TICKS_BIN_SIZE;
 
-  int num_green_leds = (revive_cell_delta + lights_revive_cells_bin_size - 1) / lights_revive_cells_bin_size;
+  int num_green_leds = (revive_cell_delta + LIGHTS_REVIVE_CELLS_BIN_SIZE - 1) / LIGHTS_REVIVE_CELLS_BIN_SIZE;
   for (int i = num_leds; --i >= 0; ) {
     gb.lights.drawPixel(
       i % 2, i / 2, i < num_green_leds ? Color::green : Color::red
@@ -207,14 +204,14 @@ void showReviveCooldown() {
 
 void revive() {
   // Init data pointers
-  std::array<uint32_t*, num_ca_layers> ps;
+  std::array<uint32_t*, NUM_CA_LAYERS> ps;
   int layer = 0;
   for (auto& ca : cas) {
-    ps[layer++] = &ca.data_[units_per_row_ca];
+    ps[layer++] = &ca.data_[UNITS_PER_ROW_CA];
   }
 
   // Iterate over grid
-  for (int i = units_per_row_ca * ca_height; --i >= 0; ) {
+  for (int i = UNITS_PER_ROW_CA * CA_HEIGHT; --i >= 0; ) {
     uint32_t mask = (*ps[0]&*ps[1] | *ps[1]&*ps[2] | *ps[2]&*ps[3] | *ps[3]&*ps[0]);
     for (auto& p : ps) {
       *p |= mask;
@@ -262,7 +259,7 @@ bool updateGardenLayer() {
   int count = 0;
 
   do {
-    layer = (layer + 1) % num_ca_layers;
+    layer = (layer + 1) % NUM_CA_LAYERS;
     if (layer == 0) {
       ++num_steps;
     }
@@ -272,12 +269,12 @@ bool updateGardenLayer() {
 
     cell_count_histories[layer].addZeroCount();
     ++count;
-  } while (count < num_ca_layers);
+  } while (count < NUM_CA_LAYERS);
 
   auto &ca = cas[layer];
   ca.step();
 
-  if (view_mode == num_ca_layers || layer == view_mode) {
+  if (view_mode == NUM_CA_LAYERS || layer == view_mode) {
     ca.draw(layer);
   }
 
@@ -297,10 +294,10 @@ bool updateGardenLayer() {
 // Normally the screen is incrementally redrawn (only for the layer that was
 // updated).
 void drawGarden() {
-  if (view_mode < num_ca_layers) {
+  if (view_mode < NUM_CA_LAYERS) {
     gb.display.clear();
     cas[view_mode].draw(view_mode);
-  } else if (view_mode == num_ca_layers) {
+  } else if (view_mode == NUM_CA_LAYERS) {
     int layer = 0;
     for (auto& ca: cas) {
       ca.draw(layer++);
@@ -316,10 +313,10 @@ void gameUpdate() {
   }
 
   if (gb.buttons.pressed(BUTTON_LEFT)) {
-    switch_view_mode(-1);
+    switchViewMode(-1);
   }
   if (gb.buttons.pressed(BUTTON_RIGHT)) {
-    switch_view_mode(1);
+    switchViewMode(1);
   }
   if (gb.buttons.pressed(BUTTON_UP)) {
     target_speed = std::min(target_speed + 1, MAX_SPEED);
@@ -329,7 +326,7 @@ void gameUpdate() {
   }
   if (gb.buttons.pressed(BUTTON_B)) {
     gb.gui.popup(exit_hint_txt, popup_duration);
-  } else if (gb.buttons.held(BUTTON_B, exit_press_limit)) {
+  } else if (gb.buttons.held(BUTTON_B, EXIT_PRESS_LIMIT)) {
     gameOver(true);
   }
 
@@ -337,7 +334,7 @@ void gameUpdate() {
     if (num_steps > revive_step_limit) {
       revive();
       ++num_revives;
-      revive_step_limit = num_steps + min_revive_wait;
+      revive_step_limit = num_steps + MIN_REVIVE_WAIT;
 
       // Exit here to skip CA update (to reduce CPU load)
       return;
@@ -383,7 +380,7 @@ void gameOverUpdate() {
   ++num_steps;
 
   if (
-    num_steps >= auto_play_wait
+    num_steps >= AUTO_PLAY_WAIT
     // When sound is playing, wait until an update is due (so music
     // quickly reflects new garden state)
     && (gb.sound.isMute() || isMusicUpdateDue())
@@ -391,7 +388,7 @@ void gameOverUpdate() {
     startGame();
   }
 
-  if (num_steps > ignore_keys_wait) {
+  if (num_steps > IGNORE_KEYS_WAIT) {
     if (gb.buttons.pressed(BUTTON_A) || gb.buttons.pressed(BUTTON_B)) {
       startGame();
     }
@@ -431,7 +428,7 @@ void gameDraw() {
   // Only draw the plot here. The CA display updates (for a
   // particular layer) happen when the CA is updated.
 
-  if (view_mode > num_ca_layers) {
+  if (view_mode > NUM_CA_LAYERS) {
     int layer = 0;
     gb.display.clear();
     for (const auto& cch : cell_count_histories) {
@@ -443,7 +440,7 @@ void gameDraw() {
   showReviveCooldown();
 
 #ifdef DEVELOPMENT
-  if (view_mode < num_ca_layers) {
+  if (view_mode < NUM_CA_LAYERS) {
     gb.display.setColor(INDEX_BLACK);
     gb.display.fillRect(0, 0, 48, 7);
     gb.display.setColor(INDEX_WHITE);
@@ -497,7 +494,7 @@ void gameOverDraw() {
   gb.display.printf("Score%8d", score);
   y+= 10;
 
-  if (show_lo_score()) {
+  if (showLoScore()) {
     gb.display.setColor(score == lo_score ? Color::red : Color::brown);
     gb.display.setCursor(10, y);
     gb.display.printf("Lo-score%8d", lo_score);
@@ -505,7 +502,7 @@ void gameOverDraw() {
   }
 
   bool auto_play = num_revives == 0;
-  if (show_hi_score()) {
+  if (showHiScore()) {
     gb.display.setColor(score == hi_score[auto_play] ? Color::green : Color::brown);
     gb.display.setCursor(10, y);
     gb.display.printf("Hi-score%8d", hi_score[auto_play]);
@@ -513,15 +510,15 @@ void gameOverDraw() {
 }
 
 void showTitle() {
-  updateFunction = titleUpdate;
-  drawFunction = titleDraw;
+  update_function = titleUpdate;
+  draw_function = titleDraw;
 
   num_steps = 0;
 }
 
 void startGame() {
-  updateFunction = gameUpdate;
-  drawFunction = gameDraw;
+  update_function = gameUpdate;
+  draw_function = gameDraw;
 
   int layer = 0;
   for (auto& ca : cas) {
@@ -545,8 +542,8 @@ void startGame() {
 }
 
 void gameOver(bool ignore_lo_score) {
-  updateFunction = gameOverUpdate;
-  drawFunction = gameOverDraw;
+  update_function = gameOverUpdate;
+  draw_function = gameOverDraw;
 
   score = num_steps;
   bool improved_lo_score = false;
@@ -566,9 +563,9 @@ void gameOver(bool ignore_lo_score) {
     improved_hi_score = true;
   }
 
-  if (improved_hi_score && show_hi_score()) {
+  if (improved_hi_score && showHiScore()) {
     gb.sound.fx(gameOverHiSfx);
-  } else if (improved_lo_score && show_lo_score()) {
+  } else if (improved_lo_score && showLoScore()) {
     gb.sound.fx(gameOverLoSfx);
   } else {
     gb.sound.fx(gameOverSfx);
@@ -586,11 +583,11 @@ void gameOver(bool ignore_lo_score) {
 void setup() {
   gb.begin();
   gb.setFrameRate(30);
-  gb.display.setPalette(caColorPalette);
+  gb.display.setPalette(CA_COLOR_PALETTE);
 
-  init_expand();
+  initExpand();
 
-  for (int i = 0; i < num_ca_layers; ++i) {
+  for (int i = 0; i < NUM_CA_LAYERS; ++i) {
     cell_decays[i].init(i);
     cell_mutations[i].init(i);
     liveliness_checks[i].init(aliveSfx[i]);
@@ -600,7 +597,7 @@ void setup() {
     flower.init();
   }
 
-  load_hi_scores();
+  loadHiScores();
 
   showTitle();
 
@@ -610,6 +607,6 @@ void setup() {
 void loop() {
   while(!gb.update());
 
-  updateFunction();
-  drawFunction();
+  update_function();
+  draw_function();
 }

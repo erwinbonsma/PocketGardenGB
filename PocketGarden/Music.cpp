@@ -859,7 +859,7 @@ const TuneSpec* *const adaptivePatternTunes[2] = {
 
 // Each row specifies the SFX for a given layer.
 // Each row consists of four pairs, arranged for increased liveliness.
-const TuneSpec *const adaptiveTunes[8 * num_ca_layers] = {
+const TuneSpec *const adaptiveTunes[8 * NUM_CA_LAYERS] = {
   &sfx10, &sfx10,  &sfx11, &sfx11,  &sfx12, &sfx12,  &sfx13, &sfx13,
   &sfx14, &sfx14,  &sfx15, &sfx16,  &sfx17, &sfx17,  &sfx18, &sfx19,
   &sfx20, &sfx21,  &sfx22, &sfx22,  &sfx23, &sfx24,  &sfx25, &sfx26,
