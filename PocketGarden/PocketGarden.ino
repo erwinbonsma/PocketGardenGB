@@ -382,7 +382,12 @@ void gameUpdate() {
 void gameOverUpdate() {
   ++num_steps;
 
-  if (num_steps >= auto_play_wait && isMusicUpdateDue()) {
+  if (
+    num_steps >= auto_play_wait
+    // When sound is playing, wait until an update is due (so music
+    // quickly reflects new garden state)
+    && (gb.sound.isMute() || isMusicUpdateDue())
+  ) {
     startGame();
   }
 
