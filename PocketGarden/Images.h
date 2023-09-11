@@ -1,10 +1,6 @@
-#ifndef IMAGES_H
-#define IMAGES_H
+#pragma once
 
 #include <Gamebuino-Meta.h>
 
 extern Image titleImage;
-
 extern Image gameOverImage;
-
-#endif

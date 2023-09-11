@@ -1,5 +1,7 @@
 #include "Sfx.h"
 
+#include <Gamebuino-Meta.h>
+
 namespace Gamebuino_Meta {
 // This code is automatically generated using import-from-p8.py
 //

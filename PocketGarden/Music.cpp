@@ -4,6 +4,8 @@
 #undef min
 #undef max
 
+#include <algorithm>
+
 #include "CellCountHistory.h"
 #include "LifeCa.h"
 #include "LivelinessCheck.h"

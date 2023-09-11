@@ -1,5 +1,4 @@
-#ifndef CELLMODS_H
-#define CELLMODS_H
+#pragma once
 
 #include <cstdint>
 
@@ -59,5 +58,3 @@ public:
   void reset() override;
   bool update() override;
 };
-
-#endif

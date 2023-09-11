@@ -1,9 +1,6 @@
-#ifndef FLOWER_H
-#define FLOWER_H
+#pragma once
 
-#include <Gamebuino-Meta.h>
-#undef min
-#undef max
+#include <cstdint>
 
 constexpr int num_flower_colors = 4;
 constexpr int num_flower_frames = 11;
@@ -20,5 +17,3 @@ public:
   void update();
   void draw(int x, int y);
 };
-
-#endif

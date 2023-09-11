@@ -1,5 +1,9 @@
 #include "Flower.h"
 
+#include <Gamebuino-Meta.h>
+#undef min
+#undef max
+
 #include <algorithm>
 
 #include "Sfx.h"

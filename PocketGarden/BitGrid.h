@@ -1,9 +1,8 @@
-#ifndef BITGRID_H
-#define BITGRID_H
+#pragma once
+
+#include <cstdint>
 
 #include "Utils.h"
-
-#include <Gamebuino-Meta.h>
 
 constexpr int bytes_per_unit = 4;
 constexpr int bits_per_unit = 32;
@@ -36,5 +35,3 @@ private:
     return x / bits_per_unit + y * units_per_row_;
   }
 };
-
-#endif

@@ -1,5 +1,7 @@
 #include "CellMods.h"
 
+#include <Gamebuino-Meta.h>
+
 #include "Utils.h"
 
 constexpr int max_cell_find_attempts = 16;

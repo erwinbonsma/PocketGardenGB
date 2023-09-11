@@ -1,5 +1,9 @@
 #include "LifeCa.h"
 
+#include <Gamebuino-Meta.h>
+#undef min
+#undef max
+
 constexpr uint32_t bits_in_last_ca_unit = ca_width % bits_per_unit_ca + 1;
 
 // Masks with valid bits

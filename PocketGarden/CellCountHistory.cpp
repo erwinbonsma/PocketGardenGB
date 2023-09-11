@@ -1,8 +1,6 @@
 #include "CellCountHistory.h"
 
 #include <Gamebuino-Meta.h>
-#undef min
-#undef max
 
 #include "LifeCa.h"
 

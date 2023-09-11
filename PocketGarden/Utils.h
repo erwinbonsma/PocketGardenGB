@@ -1,5 +1,4 @@
-#ifndef UTILS_H
-#define UTILS_H
+#pragma once
 
 #include <cstdint>
 
@@ -42,5 +41,3 @@ void assertFailed(const char *function, const char *file, int lineNo, const char
 if (!(condition)) { \
   assertFailed(__func__, __FILE__, __LINE__, #condition); \
 }
-
-#endif

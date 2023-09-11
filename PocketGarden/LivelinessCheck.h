@@ -1,8 +1,10 @@
 #pragma once
 
-#include <Gamebuino-Meta.h>
-
 #include "LifeCa.h"
+
+namespace Gamebuino_Meta {
+  class TuneSpec;
+}
 
 class LivelinessCheck {
   const Gamebuino_Meta::TuneSpec* sfx_;

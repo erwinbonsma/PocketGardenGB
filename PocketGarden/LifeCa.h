@@ -1,11 +1,7 @@
-#ifndef LIFE_CA_H
-#define LIFE_CA_H
-
-#include <Gamebuino-Meta.h>
-#undef min
-#undef max
+#pragma once
 
 #include <array>
+#include <cstdint>
 
 #include "BitGrid.h"
 #include "Utils.h"
@@ -61,5 +57,3 @@ private:
 
 constexpr int num_ca_layers = 4;
 extern std::array<LifeCa, num_ca_layers> cas;
-
-#endif

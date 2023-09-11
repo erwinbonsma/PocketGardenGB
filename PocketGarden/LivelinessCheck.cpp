@@ -1,7 +1,5 @@
 #include "LivelinessCheck.h"
 
-#include <algorithm>
-
 #include "Utils.h"
 
 // The cell growth (in number of cells) to trigger a liveliness increase

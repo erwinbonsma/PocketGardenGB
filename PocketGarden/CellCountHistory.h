@@ -2,7 +2,6 @@
 
 #include <array>
 
-#include "Utils.h"
 #include "LifeCa.h"
 
 constexpr int history_len = W;
