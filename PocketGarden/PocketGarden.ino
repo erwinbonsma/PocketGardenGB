@@ -377,6 +377,9 @@ void gameUpdate() {
 }
 
 void gameOverUpdate() {
+  // Wait for Game Over SFX to finish (so it is not interupted by flower SFX)
+  if (num_steps == 0 && gb.sound.isTunePlaying()) return;
+
   ++num_steps;
 
   if (
