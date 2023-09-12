@@ -15,7 +15,7 @@
 #include "Sfx.h"
 #include "Utils.h"
 
-#define DEVELOPMENT
+//#define DEVELOPMENT
 
 // Color palette chosen such that blends of CA cells is somewhat logical.
 // - black is no cells, and white is all cells
